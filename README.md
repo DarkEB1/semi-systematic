@@ -1,5 +1,7 @@
 # semi-systematic
 
+This repository is the data, research, and dashboard for the project. It is the systematic side, organised as a monorepo.
+
 ## Description
 
 Markets are an aggregate picture of the mapping of price to value. Most of society's problems are solved if this mapping is entirely representative. So if we want our engagements in the market to be productive, they should reflect our value judgements.
