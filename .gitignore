@@ -1,0 +1,28 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# python / uv
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+
+# marimo
+__marimo__/
+.marimo/
+
+# generated
+.index/
+.obsidian/
+
+# os / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
