@@ -1,0 +1,19 @@
+slug: demo
+created: '2026-10-29'
+owner: DarkEB1
+goal: 'TODO: one sentence on what done looks like'
+metric: 'TODO: the number that says whether an iteration helped'
+skill: new-experiment
+args:
+- '{slug}-{i}'
+- --owner
+- DarkEB1
+- --dry-run
+budget:
+  max_iterations: 2
+  max_hours: 1.0
+stop_conditions: []
+allowed_paths:
+- research/experiments/
+- knowledge/agent-log/
+- knowledge/research-log/

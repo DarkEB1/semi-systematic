@@ -1,0 +1,1 @@
+args: ["prices_daily", "scratch/DarkEB1/prices_daily/data.parquet", "--local-parquet", "ai/evals/promote-dataset/sample.parquet", "--snapshot", "2026-10-29", "--date", "2026-10-29", "--owner", "DarkEB1", "--notes", "eval fixture", "--dry-run"]

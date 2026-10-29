@@ -1,0 +1,85 @@
+--- research/experiments/2026-01-01-eval-demo/config.yaml
+slug: eval-demo
+date: '2026-01-01'
+owner: DarkEB1
+hypothesis: 'Eval: EM carry mean-reverts after dollar shocks'
+datasets:
+- name: prices_daily
+  snapshot: '2026-01-01'
+params:
+  cost_bp: 5
+  lookback_days: 20
+seed: 0
+--- research/experiments/2026-01-01-eval-demo/run.py
+import marimo
+
+__generated_with = "0.25.2"
+app = marimo.App(width="medium")
+
+
+@app.cell
+def _():
+    import json
+    import pathlib
+
+    import marimo as mo
+    import yaml
+
+    from quant import data
+
+    HERE = pathlib.Path(__file__).resolve().parent
+    config = yaml.safe_load((HERE / "config.yaml").read_text(encoding="utf-8"))
+    mo.md(f"# {config['slug']}\n\n{config.get('hypothesis', '')}")
+    return HERE, config, data, json, mo
+
+
+@app.cell
+def _(config, data):
+    # Only the datasets named in config.yaml, at the snapshots named there.
+    tables = data.load(config)
+    tables
+    return (tables,)
+
+
+@app.cell
+def _(HERE, config, json, tables):
+    # Everything --finish may quote must be written to outputs/. No other numbers count.
+    out = HERE / "outputs"
+    out.mkdir(exist_ok=True)
+    metrics = {
+        "seed": config.get("seed"),
+        "datasets_loaded": len(tables),
+        "rows": {k: v.num_rows for k, v in tables.items()},
+    }
+    (out / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+    metrics
+    return
+
+
+if __name__ == "__main__":
+    app.run()
+--- research/experiments/2026-01-01-eval-demo/results.md
+---
+slug: eval-demo
+status: draft
+date: 2026-01-01
+owner: DarkEB1
+---
+
+# eval-demo
+
+Status: draft. Set `status: final` in the frontmatter when done; the folder is frozen from then on
+(`just check` refuses later edits) and a follow-up is a new experiment with `parent: eval-demo`.
+
+## Hypothesis
+
+Eval: EM carry mean-reverts after dollar shocks
+
+## Result
+
+_Drafted by `just experiment eval-demo --finish` from outputs/; nothing here is typed by hand._
+
+## Figures
+
+_PNG files under figures/, each under 1 MB._
+--- research/experiments/2026-01-01-eval-demo/figures/.gitkeep
