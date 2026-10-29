@@ -1,0 +1,9 @@
+slug: demo
+date: '2026-10-29'
+owner: DarkEB1
+hypothesis: 'The day-one pipeline works: prices_daily loads and has no obvious gaps'
+datasets: []
+params:
+  cost_bp: 5
+  lookback_days: 20
+seed: 0
