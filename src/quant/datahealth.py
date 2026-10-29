@@ -82,6 +82,7 @@ def assess(
     *,
     con: Any = None,
     cfg: data.Settings | None = None,
+    probe: bool = True,
 ) -> Health:
     expected = last_business_day(today, doc.lag_days)
     part, key = latest_partition(keys)
@@ -98,7 +99,7 @@ def assess(
             None,
         )
     latest = part
-    if doc.cadence == "daily" and key:
+    if doc.cadence == "daily" and key and probe:
         latest = max_date_in(key, con=con, cfg=cfg) or part
     behind = (expected - latest).days
     status = "ok" if behind <= 0 else "stale"

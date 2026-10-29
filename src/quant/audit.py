@@ -15,6 +15,7 @@ import yaml
 from quant import data
 
 TEAM_FILE = data.REPO_ROOT / "knowledge" / "context" / "team.yaml"
+RESERVED_HANDLES = ("ci",)  # scratch/ci/ is where CI runs without the ingest role land
 
 
 def handles(path: Path = TEAM_FILE) -> list[str]:
@@ -24,7 +25,7 @@ def handles(path: Path = TEAM_FILE) -> list[str]:
 def allowed(key: str, known: list[str]) -> bool:
     if key.startswith(data.RAW) or key.startswith(data.CURATED):
         return True
-    return any(key.startswith(f"{data.SCRATCH}{h}/") for h in known)
+    return any(key.startswith(f"{data.SCRATCH}{h}/") for h in (*known, *RESERVED_HANDLES))
 
 
 def audit(

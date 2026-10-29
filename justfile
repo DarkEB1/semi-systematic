@@ -85,6 +85,10 @@ index:
     uv run brain build
     uv run brain index-md
 
+# Upload .index/chunks.parquet to curated/repo_index/snapshot=<sha>/ (CI, promote role)
+index-upload:
+    uv run python scripts/upload_index.py
+
 # Search the repo index: just search "R2 bucket"
 search QUERY:
     uv run brain search "$1"
