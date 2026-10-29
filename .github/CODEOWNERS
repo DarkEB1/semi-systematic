@@ -1,0 +1,28 @@
+# One entry per top-level directory so everything has an owner. Review is trust-based (no required
+# reviewer, CI must be green). The data layer block is the gate for skill autonomy: a skill may
+# merge its own PR only when no changed path matches a line in that block (see AGENTS.md).
+
+# --- data layer (review-gated; data-layer owner) -------------------------------------
+/src/quant/data/   @DarkEB1
+/catalog/          @DarkEB1
+/promote/          @DarkEB1
+/.github/          @DarkEB1
+
+# --- ownership map (informational) ---------------------------------------------------
+/knowledge/        @DarkEB1
+/knowledge/notes/DarkEB1/ @DarkEB1
+/research/         @DarkEB1
+/dashboards/       @DarkEB1
+/tools/            @DarkEB1
+/ai/               @DarkEB1
+/src/              @DarkEB1
+/tests/            @DarkEB1
+/scripts/          @DarkEB1
+/assets/           @DarkEB1
+/.claude/          @DarkEB1
+/.devcontainer/    @DarkEB1
+/justfile          @DarkEB1
+/pyproject.toml    @DarkEB1
+/uv.lock           @DarkEB1
+/AGENTS.md         @DarkEB1
+/README.md         @DarkEB1
