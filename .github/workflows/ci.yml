@@ -32,6 +32,7 @@ jobs:
       - name: Install gitleaks (pinned, checksum-verified)
         run: |
           set -euo pipefail
+          cd "$(mktemp -d)"  # keep the tarball out of the workspace (1 MB cap in just check)
           base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
           curl -fsSLO "${base}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
           curl -fsSLO "${base}/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
