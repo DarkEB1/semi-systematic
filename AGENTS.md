@@ -1,7 +1,10 @@
 # AGENTS.md
 
 How to work in `semi-systematic`, for people and agents alike. Everything runs inside the
-devcontainer through `just` recipes (run `just` to list them). Longer story: `knowledge/context/workflow.md`.
+devcontainer through `just` recipes (run `just` to list them). This file is the rules; the guides
+are `knowledge/context/start-here.md` (read first), `workflow.md` (the story), `walkthrough.md`
+(real commands and output), `data-access.md`, `working-with-agents.md` and `CONTRIBUTING.md`.
+Paste-ready prompts for assistants other than Claude Code: `ai/prompts/<skill>.md`.
 
 ## Map: six areas
 

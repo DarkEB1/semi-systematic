@@ -57,6 +57,17 @@ Not done, needs a human: the open TODOs in ADR-0001 (scratch lifecycle rule, B2 
 vendor); the first nightly `ingest.yml` run has not happened yet, so `raw/` is empty and
 data-health reports `prices_daily` as missing until then; the PR review and merge.
 
+Follow-up on the same PR (asked by @DarkEB1: "clear guides for other agents and humans on how
+the workflow actually works and looks and how they can engage with it, all self-contained"):
+added `knowledge/context/start-here.md` (reading order, annotated tree, first hour for people and
+for agents), `walkthrough.md` (the week as real commands with output captured in the container),
+`working-with-agents.md` (invoking skills from Claude Code or any assistant, tasks and loops,
+reviewing agent PRs), `data-access.md` (connect, load, write_once examples), `CONTRIBUTING.md`,
+`ai/prompts/` (one paste-ready prompt per skill plus the shared preamble), READMEs for
+`src/quant`, `research`, `dashboards/hub`, `tools/brain`, `tools/backtest`, and a first filled
+note under `knowledge/notes/DarkEB1/`. README and AGENTS.md link them; `check_links.py` now also
+scans `CONTRIBUTING.md` and `src/`.
+
 ## Files touched
 
 - [AGENTS.md](../../AGENTS.md), [README.md](../../README.md), [CLAUDE.md](../../CLAUDE.md), [justfile](../../justfile), [pyproject.toml](../../pyproject.toml), [.env.example](../../.env.example)
@@ -68,6 +79,7 @@ data-health reports `prices_daily` as missing until then; the PR review and merg
 - [tools/brain](../../tools/brain/brain/build.py), [tools/backtest](../../tools/backtest/README.md), [scripts](../../scripts/check_frontmatter.py), [dashboards/hub](../../dashboards/hub/app.py)
 - [.claude/skills](../../.claude/skills/new-experiment/SKILL.md) (seven skills), [ai/evals](../../ai/evals/README.md), [ai/tasks/demo.yaml](../../ai/tasks/demo.yaml), [ai/models.yaml](../../ai/models.yaml)
 - [research/experiments/2026-10-29-demo](../../research/experiments/2026-10-29-demo/results.md)
+- Guides: [start-here](../context/start-here.md), [walkthrough](../context/walkthrough.md), [working-with-agents](../context/working-with-agents.md), [data-access](../context/data-access.md), [CONTRIBUTING.md](../../CONTRIBUTING.md), [ai/prompts](../../ai/prompts/README.md), [src/quant/README.md](../../src/quant/README.md), [research/README.md](../../research/README.md), [dashboards/hub/README.md](../../dashboards/hub/README.md), [tools/brain/README.md](../../tools/brain/README.md), [tools/backtest/README.md](../../tools/backtest/README.md), [first note](../notes/DarkEB1/2026-10-29-open-questions-after-the-scaffold.md), [scripts/check_links.py](../../scripts/check_links.py)
 
 ## Files relied on
 

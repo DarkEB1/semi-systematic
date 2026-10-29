@@ -28,10 +28,15 @@ data layer and catalog under `src/quant/` and `catalog/`, one dashboard hub unde
 and the skills AI agents run under `.claude/skills/`. A retrieval index is built over all of it
 (`just search "..."`). Data itself lives in a Cloudflare R2 bucket, never in git.
 
-Read [AGENTS.md](AGENTS.md) for the map, the eight rules and the `just` interface, and
-[knowledge/context/workflow.md](knowledge/context/workflow.md) for a researcher's week and an
-agent loop in this repo. The devcontainer is the only supported way to run anything here, by
-people or agents.
+Start with [knowledge/context/start-here.md](knowledge/context/start-here.md): the reading
+order, the annotated tree, what a week leaves behind, and a first hour for people and one for
+agents. From there: [AGENTS.md](AGENTS.md) (map, eight rules, skills, `just` interface),
+[workflow.md](knowledge/context/workflow.md) (the story of a week),
+[walkthrough.md](knowledge/context/walkthrough.md) (the same week as real commands and output),
+[data-access.md](knowledge/context/data-access.md) (reading and writing data),
+[working-with-agents.md](knowledge/context/working-with-agents.md) (invoking skills, loops,
+reviewing agent PRs) and [CONTRIBUTING.md](CONTRIBUTING.md) (branches, PRs, CI, conventions).
+The devcontainer is the only supported way to run anything here, by people or agents.
 
 ## Set up by hand
 

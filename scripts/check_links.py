@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Relative markdown links must resolve. Scans knowledge/, catalog/, .claude/skills/, ai/,
-research/, README.md and AGENTS.md. External (http, mailto) and pure anchor links are ignored."""
+research/, tools/, dashboards/, src/, README.md, AGENTS.md and CONTRIBUTING.md. External (http,
+mailto) and pure anchor links are ignored."""
 
 from __future__ import annotations
 
@@ -18,8 +19,10 @@ SCAN = [
     "research",
     "README.md",
     "AGENTS.md",
+    "CONTRIBUTING.md",
     "tools",
     "dashboards",
+    "src",
 ]
 SKIP_PREFIX = ("http://", "https://", "mailto:", "#", "tel:")
 
