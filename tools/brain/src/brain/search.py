@@ -1,4 +1,4 @@
-"""`just search "..."`: DuckDB ILIKE over text + heading (+ title), newest first."""
+"""DuckDB ILIKE over text + heading + title, newest first."""
 
 from __future__ import annotations
 
@@ -8,7 +8,8 @@ from pathlib import Path
 
 import duckdb
 
-from brain.build import INDEX_FILE, build
+from brain.build import build
+from brain.repo import Repo
 
 
 @dataclass
@@ -29,9 +30,20 @@ def _snippet(text: str, query: str, width: int = 90) -> str:
     return ("…" if a > 0 else "") + s + ("…" if b < len(text) else "")
 
 
-def search(query: str, *, limit: int = 20, index: Path = INDEX_FILE) -> list[Hit]:
+def search(
+    query: str, *, repo: Repo | None = None, index: Path | None = None, limit: int = 20
+) -> list[Hit]:
+    """Search ``index`` (default: ``repo.index_file``). With a ``repo`` and no index file yet, the
+    index is built first; without a repo a missing index is an error."""
+    if index is None:
+        if repo is None:
+            raise ValueError("search needs a repo or an index path")
+        index = repo.index_file
+    index = Path(index)
     if not index.exists():
-        build(out=index)
+        if repo is None:
+            raise FileNotFoundError(f"no index at {index}; build one with brain.build(repo)")
+        build(repo, out=index)
     con = duckdb.connect()
     like = f"%{query}%"
     rows = con.execute(
@@ -49,7 +61,7 @@ def search(query: str, *, limit: int = 20, index: Path = INDEX_FILE) -> list[Hit
 
 def format_hits(hits: list[Hit], query: str) -> str:
     if not hits:
-        return f'no results for "{query}" (run `just index` if the repo changed)'
+        return f'no results for "{query}" (rebuild the index if the repository changed)'
     out = []
     for h in hits:
         head = f"{h.path}" + (f" › {h.heading}" if h.heading else "")

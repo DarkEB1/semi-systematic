@@ -66,10 +66,10 @@ MAP: list[tuple[tuple[str, ...], str, str, str]] = [
         "PR; tests under tests/",
     ),
     (
-        ("tool", "engine", "package", "cli"),
-        "tools/<name>/ as a uv workspace member with its own pyproject.toml and README",
-        "one lockfile at the root; add the member to [tool.uv.sources]",
-        "PR; `uv lock` in the devcontainer",
+        ("tool", "engine", "package", "cli", "backtester", "optimiser"),
+        "tools/<name>/ as an isolated workspace package: src/<name>/, own pyproject.toml, tests/, README",
+        "imports only its declared dependencies, never quant or the repo; takes paths as arguments; one lockfile at the root (contract: tools/README.md, enforced by check_tools.py)",
+        "`just new-tool <name>` then `uv lock && just setup`; adding a tool is an ADR",
     ),
     (
         ("decision", "adr", "convention", "policy"),

@@ -1,13 +1,14 @@
-"""Build .index/chunks.parquet over the repo.
+"""Build the chunk table (``<index_dir>/chunks.parquet``) over a ``Repo``.
 
-All chunking logic is in one function, ``chunk(path, text) -> list[Chunk]``, so it can be replaced
-later (e.g. by a token-aware splitter) without touching collection or output. Sources walked:
+All chunking logic is in one function, ``chunk(path, text, repo) -> list[Chunk]``, so it can be
+replaced later (e.g. by a token-aware splitter) without touching collection or output. Sources
+walked, relative to ``repo.root``:
 
-- knowledge/**/*.md (skipping ``private: true``, templates and INDEX.md)
-- catalog/datasets/*.md
-- research/experiments/*/config.yaml and results.md
-- every .claude/skills/*/SKILL.md
-- src/**/*.py and research/signals/**/*.py (one chunk per top-level function/class, docstring first)
+- ``repo.knowledge/**/*.md`` (skipping ``private: true``, templates, INDEX.md)
+- ``repo.datasets/*.md``
+- ``repo.experiments/*/config.yaml`` and ``results.md``
+- ``repo.skills/*/SKILL.md``
+- ``*.py`` under each folder in ``repo.code`` (one chunk per top-level function/class, docstring first)
 
 Markdown is chunked on ``##``. There is no embedding column yet; see ``embed.py``.
 """
@@ -26,9 +27,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import yaml
 
-ROOT = Path(__file__).resolve().parents[3]
-INDEX_DIR = ROOT / ".index"
-INDEX_FILE = INDEX_DIR / "chunks.parquet"
+from brain.repo import Repo
+
 FM_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n?(.*)\Z", re.S)
 
 
@@ -75,7 +75,7 @@ SCHEMA = pa.schema(
 # --------------------------------------------------------------------------- helpers
 
 
-def _split_frontmatter(text: str) -> tuple[dict, str]:
+def split_frontmatter(text: str) -> tuple[dict, str]:
     m = FM_RE.match(text)
     if not m:
         return {}, text
@@ -98,13 +98,6 @@ def _cid(path: str, heading: str, n: int) -> str:
     return hashlib.sha1(f"{path}#{n}:{heading}".encode()).hexdigest()[:16]
 
 
-def _rel(path: Path) -> str:
-    try:
-        return path.resolve().relative_to(ROOT).as_posix()
-    except ValueError:
-        return path.as_posix()
-
-
 def _h1(body: str) -> str | None:
     m = re.search(r"^# (.+)$", body, flags=re.M)
     return m.group(1).strip() if m else None
@@ -113,12 +106,17 @@ def _h1(body: str) -> str | None:
 # --------------------------------------------------------------------------- chunk()
 
 
-def chunk(path: Path, text: str) -> list[Chunk]:
-    """The single chunking function. Replace this to change how everything is split."""
-    rel = _rel(path)
+def chunk(path: Path, text: str, repo: Repo | None = None) -> list[Chunk]:
+    """The single chunking function. Replace this to change how everything is split.
+
+    ``repo`` makes paths repo-relative and tells results.md files apart from other markdown;
+    without it the path is used as given."""
+    path = Path(path)
+    rel = repo.rel(path) if repo else path.as_posix()
+    experiments = (repo.experiments if repo else "research/experiments").strip("/") + "/"
     name = path.name
     if name.endswith(".md"):
-        return _chunk_markdown(rel, path, text)
+        return _chunk_markdown(rel, path, text, experiments)
     if name == "config.yaml":
         return _chunk_experiment_config(rel, text)
     if name.endswith(".py"):
@@ -126,14 +124,14 @@ def chunk(path: Path, text: str) -> list[Chunk]:
     return []
 
 
-def _chunk_markdown(rel: str, path: Path, text: str) -> list[Chunk]:
-    fm, body = _split_frontmatter(text)
+def _chunk_markdown(rel: str, path: Path, text: str, experiments: str) -> list[Chunk]:
+    fm, body = split_frontmatter(text)
     if fm.get("private") is True:
         return []
     if path.name == "SKILL.md":
         typ = "skill"
         title = str(fm.get("name") or _h1(body) or path.parent.name)
-    elif path.name == "results.md" and "research/experiments/" in rel:
+    elif path.name == "results.md" and experiments in rel:
         typ = "results"
         title = str(fm.get("title") or _h1(body) or path.parent.name)
     else:
@@ -267,46 +265,52 @@ def _chunk_python(rel: str, text: str) -> list[Chunk]:
 # --------------------------------------------------------------------------- collect / build
 
 
-def collect(root: Path = ROOT) -> list[Path]:
+def _skip(repo: Repo, p: Path) -> bool:
+    parts = p.relative_to(repo.root).parts
+    return any(s in parts for s in repo.skip_parts)
+
+
+def collect(repo: Repo) -> list[Path]:
+    """Every file ``build`` will chunk, sorted."""
     paths: list[Path] = []
-    kn = root / "knowledge"
+    kn = repo.path(repo.knowledge)
     if kn.exists():
-        for p in kn.rglob("*.md"):
-            rp = p.relative_to(root).parts
-            if "templates" in rp or p.name == "INDEX.md" or ".obsidian" in rp:
-                continue
-            paths.append(p)
-    paths += sorted((root / "catalog" / "datasets").glob("*.md"))
-    for exp in sorted((root / "research" / "experiments").glob("*/")):
+        paths += [
+            p
+            for p in kn.rglob("*.md")
+            if not _skip(repo, p) and p.resolve() != repo.index_md_path.resolve()
+        ]
+    paths += sorted(repo.path(repo.datasets).glob("*.md"))
+    for exp in sorted(repo.path(repo.experiments).glob("*/")):
         for nm in ("config.yaml", "results.md"):
             if (exp / nm).exists():
                 paths.append(exp / nm)
-    paths += sorted((root / ".claude" / "skills").glob("*/SKILL.md"))
-    paths += sorted(p for p in (root / "src").rglob("*.py") if "__pycache__" not in p.parts)
-    paths += sorted(
-        p for p in (root / "research" / "signals").rglob("*.py") if "__pycache__" not in p.parts
-    )
+    paths += sorted(repo.path(repo.skills).glob("*/SKILL.md"))
+    for code_dir in repo.code:
+        paths += sorted(p for p in repo.path(code_dir).rglob("*.py") if not _skip(repo, p))
     return sorted(set(paths))
 
 
-def git_sha(root: Path = ROOT) -> str:
+def git_sha(root: Path) -> str:
     try:
         return subprocess.run(
             ["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True
         ).stdout.strip()
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 - not a git checkout, or git missing: the column stays empty
         return ""
 
 
-def build(root: Path = ROOT, out: Path = INDEX_FILE) -> int:
-    sha = git_sha(root)
+def build(repo: Repo, out: Path | None = None) -> int:
+    """Chunk every collected file and write the parquet table. Returns the chunk count."""
+    out = Path(out) if out else repo.index_file
+    sha = git_sha(repo.root)
     chunks: list[Chunk] = []
-    for p in collect(root):
+    for p in collect(repo):
         text = p.read_text(encoding="utf-8", errors="replace")
         mtime = dt.datetime.fromtimestamp(p.stat().st_mtime, tz=dt.UTC).isoformat(
             timespec="seconds"
         )
-        for c in chunk(p, text):
+        for c in chunk(p, text, repo):
             c.git_sha, c.last_modified = sha, mtime
             chunks.append(c)
     cols = {f.name: [getattr(c, f.name) for c in chunks] for f in fields(Chunk)}

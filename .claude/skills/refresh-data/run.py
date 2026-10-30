@@ -17,12 +17,10 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
+from quant import datahealth
+from quant.datasets import DatasetDoc, dataset_docs
+
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / "src"))
-
-from quant import datahealth  # noqa: E402
-from quant.datasets import DatasetDoc, dataset_docs  # noqa: E402
-
 LOOKBACK_DAYS = 400
 
 

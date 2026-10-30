@@ -34,6 +34,7 @@ check:
     uv run python scripts/check_size.py
     uv run python scripts/check_env.py
     uv run python scripts/check_frozen.py
+    uv run python scripts/check_tools.py
     gitleaks dir . --redact --no-banner --exit-code 1
 
 # Diff every skill's deterministic part against its golden fixture (ai/evals)
@@ -95,7 +96,7 @@ search QUERY:
 
 # Embed chunks (errors until EMBEDDING_MODEL is configured)
 embed:
-    uv run brain embed
+    uv run brain embed --model "${EMBEDDING_MODEL:-}"
 
 # Print the controlled tag vocabulary from knowledge/context/tags.md
 tags:
@@ -118,6 +119,12 @@ experiment SLUG *ARGS:
 # Run the internal dashboard hub (marimo) on port 2718
 dashboard *ARGS:
     uv run marimo run dashboards/hub/app.py --host 0.0.0.0 --port 2718 --headless "$@"
+
+# --- tools ---------------------------------------------------------------------
+
+# Scaffold tools/<name>/ as an isolated workspace package (contract: tools/README.md)
+new-tool NAME *ARGS:
+    uv run python scripts/new_tool.py "$1" "${@:2}"
 
 # --- agents --------------------------------------------------------------------
 

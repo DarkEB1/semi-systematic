@@ -30,6 +30,7 @@ CI runs exactly what you can run locally, in this order:
 | `check_size.py` | no tracked or untracked file over 1 MB | move data to the bucket, figures under 1 MB |
 | `check_env.py` | every environment variable a recipe or script reads is in `.env.example` | add the line, with a comment, to `.env.example` |
 | `check_frozen.py` | no diff under an experiment whose `results.md` is `status: final` | new experiment with `parent:` |
+| `check_tools.py` | every `tools/<name>/` follows the tools contract (src layout, declared deps, no repo knowledge, tests) and no `sys.path` hacks anywhere | see `tools/README.md` |
 | `gitleaks dir .` | no secret in the tree | rotate the key, then remove it; a rotated key is still a finding in history |
 | `just test` | pytest across `tests/` and the `tools/*` members | read the failing test |
 | `just eval` | each skill's `run.py` output equals its golden in `ai/evals/<skill>/expected.txt` | if the change was intended, `just eval --update` and review the golden diff in the PR |
@@ -51,6 +52,7 @@ recipe. The common ones:
 - **A teammate**: `knowledge/notes/<handle>/.gitkeep`, the handle in `knowledge/context/team.yaml`, a `/knowledge/notes/<handle>/ @<handle>` line in `.github/CODEOWNERS`, and an R2 token named `<handle>-scratch` created by the data-layer owner (never committed anywhere).
 - **A decision**: apply the ADR test (it changes a convention, a dependency, a data source, a method others will reuse, or costs money). Yes: copy `knowledge/templates/decision.md` to `knowledge/decisions/ADR-NNNN-<slug>.md` with the next number. No: a `(minor)` line in the minutes.
 - **A dependency**: it is an ADR (it changes a dependency). Add it with `uv add`, commit `uv.lock`, and keep `src/quant` free of the optional `ml` extra (ruff enforces it).
+- **A tool**: `just new-tool <name>`, then `uv lock && just setup`. A tool is an isolated package that imports only what its own `pyproject.toml` declares and takes every path as an argument; the contract is `tools/README.md`. An external engine (a backtester, an optimiser) is wrapped by one tool and imported from there. Adding a tool is an ADR.
 - **A skill**: `.claude/skills/<name>/SKILL.md` with the four sections, a `run.py`, an `ai/evals/<name>/` golden, a row in the AGENTS.md skills table, and a `just` recipe if it has a deterministic part. The repo-structure skill's `run.py --check` verifies all of that.
 - **A convention change**: templates, `scripts/check_frontmatter.py`, `AGENTS.md`, the affected `SKILL.md` and its golden move together in one PR, plus the ADR. Never rename or move an existing knowledge file to fit a new convention.
 

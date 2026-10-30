@@ -81,13 +81,11 @@ wheels = [
 
 [[package]]
 name = "brain"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "tools/brain" }
 dependencies = [
     { name = "duckdb" },
-    { name = "polars" },
     { name = "pyarrow" },
-    { name = "python-frontmatter" },
     { name = "pyyaml" },
     { name = "typer" },
 ]
@@ -95,9 +93,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "duckdb", specifier = ">=1.3" },
-    { name = "polars", specifier = ">=1.30" },
     { name = "pyarrow", specifier = ">=20" },
-    { name = "python-frontmatter", specifier = ">=1.1" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "typer", specifier = ">=0.16" },
 ]

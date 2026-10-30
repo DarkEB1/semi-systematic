@@ -157,7 +157,6 @@ def check_bucket(values: dict[str, str]) -> None:
                 (r.stderr.strip().splitlines() or ["check keys and endpoint"])[-1][:120],
             )
     try:
-        sys.path.insert(0, str(ROOT / "src"))
         from quant import data
 
         con = data.connect(views=False)

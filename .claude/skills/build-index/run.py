@@ -5,6 +5,8 @@ run.py build                 rebuild .index/chunks.parquet and knowledge/INDEX.m
 run.py search QUERY          ILIKE search, newest first, with paths to cite
 run.py chunk-file PATH       show how one file is chunked (JSON), used by the eval
 run.py answer QUERY          search and print a citation list for "what do we know about X"
+
+Thin wrapper over the `brain` tool (tools/brain): this file knows the repo root, brain does not.
 """
 
 from __future__ import annotations
@@ -14,12 +16,10 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / "tools" / "brain"))
+from brain import Repo, build, chunk, format_hits, search, write_index
 
-from brain import build as _build  # noqa: E402
-from brain import index_md as _index_md  # noqa: E402
-from brain import search as _search  # noqa: E402
+ROOT = Path(__file__).resolve().parents[3]
+REPO = Repo(ROOT)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -37,13 +37,12 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
 
     if a.cmd == "build":
-        n = _build.build()
-        _index_md.write()
+        n = build(REPO)
+        write_index(REPO)
         print(f"index: {n} chunks; knowledge/INDEX.md regenerated")
         return 0
     if a.cmd == "chunk-file":
         text = a.path.read_text(encoding="utf-8")
-        chunks = _build.chunk(a.path, text)
         rows = [
             {
                 "heading": ch.heading,
@@ -53,13 +52,13 @@ def main(argv: list[str] | None = None) -> int:
                 "chars": len(ch.text),
                 "first_line": ch.text.splitlines()[0][:80] if ch.text else "",
             }
-            for ch in chunks
+            for ch in chunk(a.path, text)
         ]
         print(json.dumps(rows, indent=1))
         return 0
-    hits = _search.search(a.query, limit=a.limit)
+    hits = search(a.query, repo=REPO, limit=a.limit)
     if a.cmd == "search":
-        print(_search.format_hits(hits, a.query))
+        print(format_hits(hits, a.query))
         return 0 if hits else 1
     print(f'What we know about "{a.query}" ({len(hits)} chunk(s), newest first):\n')
     for h in hits:

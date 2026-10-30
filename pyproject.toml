@@ -44,7 +44,7 @@ build-backend = "hatchling.build"
 packages = ["src/quant"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "tools/brain/tests", "tools/backtest/tests"]
+testpaths = ["tests", "tools/*/tests"]
 addopts = "-q"
 
 [tool.ruff]

@@ -18,11 +18,9 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import yaml
 
+from quant import data
+
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / "src"))
-
-from quant import data  # noqa: E402
-
 TEAM = ROOT / "knowledge" / "context" / "team.yaml"
 REQUESTS = ROOT / "promote" / "requests"
 TYPE_NAMES = {

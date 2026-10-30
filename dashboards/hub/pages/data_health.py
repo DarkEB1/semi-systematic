@@ -3,13 +3,7 @@ Same logic as `just data-health` (quant.datahealth); nothing is cached here."""
 
 from __future__ import annotations
 
-import sys
 from dataclasses import asdict
-
-from pages import ROOT
-
-if str(ROOT / "src") not in sys.path:
-    sys.path.insert(0, str(ROOT / "src"))
 
 
 def rows() -> list[dict]:

@@ -11,13 +11,12 @@ import sys
 from pathlib import Path
 
 import pyarrow.parquet as pq
+from brain import Repo
+
+from quant import data
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-
-from quant import data  # noqa: E402
-
-INDEX_FILE = ROOT / ".index" / "chunks.parquet"
+INDEX_FILE = Repo(ROOT).index_file
 
 
 def main() -> int:

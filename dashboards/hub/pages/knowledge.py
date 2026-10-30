@@ -1,21 +1,17 @@
-"""Knowledge page: knowledge/INDEX.md plus search over the chunk table (brain.search)."""
+"""Knowledge page: knowledge/INDEX.md plus search over the chunk table (the brain tool)."""
 
 from __future__ import annotations
 
-import sys
+from brain import Repo, search
 
 from pages import ROOT
 
-if str(ROOT / "tools" / "brain") not in sys.path:
-    sys.path.insert(0, str(ROOT / "tools" / "brain"))
-
-INDEX_MD = ROOT / "knowledge" / "INDEX.md"
+REPO = Repo(ROOT)
+INDEX_MD = REPO.index_md_path
 
 
 def rows(query: str, limit: int = 30) -> list[dict]:
-    from brain import search
-
-    return [h.__dict__ for h in search.search(query, limit=limit)] if query else []
+    return [h.__dict__ for h in search(query, repo=REPO, limit=limit)] if query else []
 
 
 def render(mo, filters: dict):

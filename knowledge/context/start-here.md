@@ -56,8 +56,9 @@ semi-systematic/
 │   └── reference/*.csv       small reference tables (universe)
 ├── src/quant/                data layer (read/write policy), ingest modules, promote, health, audit
 ├── tests/                    pytest; `just test`
-├── tools/brain/              retrieval index (`just index`, `just search`)
-├── tools/backtest/           reserved for the first reusable backtest loop
+├── tools/                    isolated packages, importable anywhere (contract in tools/README.md)
+│   ├── brain/                retrieval index (`just index`, `just search`)
+│   └── backtest/             reserved for the first reusable backtest loop; `just new-tool` adds more
 ├── dashboards/hub/           one marimo hub, five pages (`just dashboard`, port 2718)
 ├── .claude/skills/<name>/    SKILL.md (the recipe an agent follows) + run.py (its deterministic part)
 ├── ai/                       prompts/ (paste-ready), evals/ (goldens), tasks/ (budgeted loops), models.yaml
