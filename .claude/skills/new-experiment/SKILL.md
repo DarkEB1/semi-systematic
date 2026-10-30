@@ -27,8 +27,9 @@ judgement in the Verdict. The eval fixture is `ai/evals/new-experiment/`.
    `quant.data.load(config)` and must write anything quotable to `outputs/`.
 4. Run it: `uv run research/experiments/<folder>/run.py` (headless) or `marimo edit` in the devcontainer.
 5. Check for duplicated code: `just experiment <slug> --check-dupes`. A duplicate means the reuse
-   rule applies: move the function to `research/signals/` or `src/quant/` with a test, in its own PR,
-   before this experiment's PR.
+   rule applies: move the function to a tool (`just new-tool <name>`, or an existing one under
+   `tools/`) with a test, in its own PR, before this experiment's PR. Experiments never import
+   each other; they meet only in the data layer.
 6. Finish: `just experiment <slug> --finish` drafts the Result sections of `results.md` and
    `knowledge/research-log/<today>-<slug>.md` from `outputs/` only. Write the Verdict yourself.
    Tags come from `just tags`; if none fits, append one to `knowledge/context/tags.md` in this PR.

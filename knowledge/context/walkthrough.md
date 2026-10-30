@@ -115,7 +115,7 @@ Method (params and seed from `config.yaml`, link to the notebook), Result, and a
 `TODO: keep / park / kill`. The Verdict is the one thing only you can write.
 
 `--finish` also runs the duplicate check. A line such as
-`duplicate: run.py:zscore == 2026-10-29-demo/run.py:zscore; second use -> move to research/signals/ or src/quant/ with a test, in its own PR`
+`duplicate: run.py:zscore == 2026-10-29-demo/run.py:zscore; second use -> move to a tool (tools/<name>, `just new-tool`) with a test, in its own PR`
 means the reuse rule applies before this PR.
 
 Set `status: final` in `results.md` when nothing will change. From then on `just check` fails any

@@ -9,7 +9,7 @@ package.
 
 ## The contract
 
-Enforced by `scripts/check_tools.py` in `just check`.
+Enforced by `scripts/check_isolation.py` in `just check` (ADR-0002, ADR-0003).
 
 1. **Layout**: `tools/<name>/pyproject.toml` (project name equals the folder name),
    `src/<name>/__init__.py` with `__version__` and `__all__`, `tests/test_*.py`, `README.md`.

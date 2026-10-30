@@ -55,9 +55,9 @@ MAP: list[tuple[tuple[str, ...], str, str, str]] = [
     ),
     (
         ("signal", "reusable", "shared", "second use", "helper"),
-        "research/signals/<name>.py (research code used by 2+ experiments) or src/quant/ (library code used by tools and pipelines)",
-        "code moves out of an experiment only on second use, with a test, in its own PR",
-        "move by hand in its own PR; new-experiment --check-dupes flags candidates",
+        "a tool under tools/<name>/ (new or existing); never another experiment, never src/quant unless it is data-layer code",
+        "code moves out of an experiment only on second use, with a test, in its own PR; units meet only in the data layer, the dashboard and knowledge/ (ADR-0003)",
+        "`just new-tool <name>` or edit the existing tool; new-experiment --check-dupes flags candidates",
     ),
     (
         ("library", "quant", "data layer", "connect", "write_once"),

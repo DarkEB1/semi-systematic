@@ -34,7 +34,7 @@ check:
     uv run python scripts/check_size.py
     uv run python scripts/check_env.py
     uv run python scripts/check_frozen.py
-    uv run python scripts/check_tools.py
+    uv run python scripts/check_isolation.py
     gitleaks dir . --redact --no-banner --exit-code 1
 
 # Diff every skill's deterministic part against its golden fixture (ai/evals)

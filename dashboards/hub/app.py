@@ -14,14 +14,14 @@ def _():
     HERE = pathlib.Path(__file__).resolve().parent
     if str(HERE) not in sys.path:
         sys.path.insert(0, str(HERE))
-    from pages import agent_log, data_health, experiments, knowledge, signals
+    from pages import agent_log, data_health, experiments, knowledge, tools
 
     PAGES = {
         "experiments": experiments,
         "data-health": data_health,
         "knowledge": knowledge,
         "agent-log": agent_log,
-        "signals": signals,
+        "tools": tools,
     }
     page = mo.ui.dropdown(options=list(PAGES), value="experiments", label="page")
     return PAGES, mo, page

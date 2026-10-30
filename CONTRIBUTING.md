@@ -12,8 +12,8 @@ How changes get into `main`, for people and agents. The rules themselves are in
   `fix/<slug>`. Agents use the same names.
 - Commit messages are conventional (`feat(research): ...`, `docs: ...`, `chore: ...`); the squash
   keeps the PR title, so the PR title matters more than the commits.
-- One PR per thing. An experiment and its research-log entry are one thing; moving a function to
-  `research/signals/` under the reuse rule is a separate PR that lands first.
+- One PR per thing. An experiment and its research-log entry are one thing; moving a function into
+  a tool under the reuse rule is a separate PR that lands first.
 - Review is trust-based: when CI is green the author merges. The exception is the data-layer block
   in `.github/CODEOWNERS` (`src/quant/data/**`, `catalog/**`, `promote/**`, `.github/**`): PRs
   touching those wait for the data-layer owner. Skills follow the same rule for their own PRs.
@@ -30,7 +30,7 @@ CI runs exactly what you can run locally, in this order:
 | `check_size.py` | no tracked or untracked file over 1 MB | move data to the bucket, figures under 1 MB |
 | `check_env.py` | every environment variable a recipe or script reads is in `.env.example` | add the line, with a comment, to `.env.example` |
 | `check_frozen.py` | no diff under an experiment whose `results.md` is `status: final` | new experiment with `parent:` |
-| `check_tools.py` | every `tools/<name>/` follows the tools contract (src layout, declared deps, no repo knowledge, tests) and no `sys.path` hacks anywhere | see `tools/README.md` |
+| `check_isolation.py` | units are isolated: tools follow `tools/README.md`, experiments import only `quant` and tools (never each other), `src/quant` and scripts import no research or dashboard code, no `sys.path` hacks anywhere | see `tools/README.md` and ADR-0003 |
 | `gitleaks dir .` | no secret in the tree | rotate the key, then remove it; a rotated key is still a finding in history |
 | `just test` | pytest across `tests/` and the `tools/*` members | read the failing test |
 | `just eval` | each skill's `run.py` output equals its golden in `ai/evals/<skill>/expected.txt` | if the change was intended, `just eval --update` and review the golden diff in the PR |

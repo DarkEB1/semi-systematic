@@ -21,7 +21,7 @@ scaffold branch, no loop, no budget.
 
 ## Decisions with justification
 
-- Wrote the contract down (`tools/README.md`) and enforced it (`scripts/check_tools.py` in
+- Wrote the contract down (`tools/README.md`) and enforced it (`scripts/check_isolation.py` in
   `just check`) rather than relying on review: the point of the ask is that the next tool, by a
   person or an agent, comes out isolated without anyone remembering the rules.
 - src layout for every tool: a package under `src/` cannot be imported from the working directory
@@ -42,7 +42,16 @@ scaffold branch, no loop, no budget.
 
 ## Summary
 
-Done: `tools/README.md` (contract), `scripts/check_tools.py` and `scripts/new_tool.py` with
+Second ask in the same session ("Generally I would like everything isolated, it only comes
+together in the data and the dashboard (and context docs) - this includes projects, research
+etc"): generalised the tools contract into the isolation principle, ADR-0003. `research/signals/`
+removed, reuse rule now points at tools, rule 9 added to AGENTS.md, `check_tools.py` became
+`check_isolation.py` (tools contract plus import rules for experiments, the data layer, scripts
+and skills), the hub's signals page became a tools page, brain indexes `tools/` instead of
+`research/signals/`. "Projects" are named in the ADR as a future unit under the same rule; their
+layout is a question for @DarkEB1.
+
+Done for the tools tier: `tools/README.md` (contract), `scripts/check_isolation.py` and `scripts/new_tool.py` with
 `just new-tool`, both tools moved to src layout, `brain` 0.2.0 with `Repo`, `--root` and
 fixture tests, consumers (`build-index/run.py`, hub pages, `upload_index.py`, two skill runners,
 `onboard.py`) import installed packages, pytest `testpaths` globs `tools/*/tests`, ADR-0002,
@@ -56,12 +65,13 @@ Not done, needs a human: the PR review; the decision on whether skill cores move
 ## Files touched
 
 - [tools/README.md](../../tools/README.md), [tools/brain](../../tools/brain/README.md) (pyproject, `src/brain/*`, tests), [tools/backtest](../../tools/backtest/README.md) (pyproject, `src/backtest/__init__.py`, tests)
-- [scripts/check_tools.py](../../scripts/check_tools.py), [scripts/new_tool.py](../../scripts/new_tool.py), [scripts/upload_index.py](../../scripts/upload_index.py), [scripts/onboard.py](../../scripts/onboard.py)
+- [scripts/check_isolation.py](../../scripts/check_isolation.py), [scripts/new_tool.py](../../scripts/new_tool.py), [scripts/upload_index.py](../../scripts/upload_index.py), [scripts/onboard.py](../../scripts/onboard.py)
 - [tests/test_new_tool.py](../../tests/test_new_tool.py), [tests/test_brain_repo.py](../../tests/test_brain_repo.py)
 - [.claude/skills/build-index/run.py](../../.claude/skills/build-index/run.py), [promote-dataset/run.py](../../.claude/skills/promote-dataset/run.py), [refresh-data/run.py](../../.claude/skills/refresh-data/run.py), [repo-structure/run.py](../../.claude/skills/repo-structure/run.py)
 - [dashboards/hub/pages/knowledge.py](../../dashboards/hub/pages/knowledge.py), [dashboards/hub/pages/data_health.py](../../dashboards/hub/pages/data_health.py)
 - [justfile](../../justfile), [pyproject.toml](../../pyproject.toml), [uv.lock](../../uv.lock)
-- [AGENTS.md](../../AGENTS.md), [CONTRIBUTING.md](../../CONTRIBUTING.md), [start-here](../context/start-here.md), [ADR-0002](../decisions/ADR-0002-tools-are-isolated-packages.md), [knowledge/INDEX.md](../INDEX.md)
+- [AGENTS.md](../../AGENTS.md), [CONTRIBUTING.md](../../CONTRIBUTING.md), [start-here](../context/start-here.md), [workflow](../context/workflow.md), [walkthrough](../context/walkthrough.md), [ADR-0002](../decisions/ADR-0002-tools-are-isolated-packages.md), [ADR-0003](../decisions/ADR-0003-isolation-principle.md), [knowledge/INDEX.md](../INDEX.md)
+- [scripts/check_isolation.py](../../scripts/check_isolation.py), [scripts/check_env.py](../../scripts/check_env.py), [dashboards/hub/pages/tools.py](../../dashboards/hub/pages/tools.py), [dashboards/hub/README.md](../../dashboards/hub/README.md), [research/README.md](../../research/README.md), [new-experiment/SKILL.md](../../.claude/skills/new-experiment/SKILL.md), [new-experiment/run.py](../../.claude/skills/new-experiment/run.py)
 
 ## Files relied on
 

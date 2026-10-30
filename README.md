@@ -30,7 +30,7 @@ and the skills AI agents run under `.claude/skills/`. A retrieval index is built
 
 Start with [knowledge/context/start-here.md](knowledge/context/start-here.md): the reading
 order, the annotated tree, what a week leaves behind, and a first hour for people and one for
-agents. From there: [AGENTS.md](AGENTS.md) (map, eight rules, skills, `just` interface),
+agents. From there: [AGENTS.md](AGENTS.md) (map, nine rules, skills, `just` interface),
 [workflow.md](knowledge/context/workflow.md) (the story of a week),
 [walkthrough.md](knowledge/context/walkthrough.md) (the same week as real commands and output),
 [data-access.md](knowledge/context/data-access.md) (reading and writing data),

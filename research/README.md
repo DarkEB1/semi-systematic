@@ -19,9 +19,12 @@ renamed. Inside:
 from `outputs/`. `status: final` freezes the folder (`just check` fails later diffs); a follow-up
 is a new experiment with `parent: <slug>`. Full example: [knowledge/context/walkthrough.md](../knowledge/context/walkthrough.md).
 
-## signals/
+## Isolation
 
-Code used by two or more experiments. The reuse rule: a function moves here (or to `src/quant/`)
-on its second use, with a test, in its own PR that lands before the experiment that needs it.
-`just experiment <slug> --check-dupes` finds candidates. Until a second use, duplication inside
-experiments is fine. The hub's signals page lists what is here.
+Every experiment is a unit on its own: it imports the data layer (`quant.data`), tools under
+`tools/` and third-party packages, and nothing else. Experiments never import each other, and
+nothing imports an experiment. Code used by two or more experiments moves into a tool
+(`just new-tool <name>`, or an existing tool) on its second use, with a test, in its own PR that
+lands before the experiment that needs it; `just experiment <slug> --check-dupes` finds
+candidates. Until then, duplication inside experiments is fine. `scripts/check_isolation.py` in
+`just check` enforces the import rules (ADR-0003); the hub's tools page lists what is reusable.

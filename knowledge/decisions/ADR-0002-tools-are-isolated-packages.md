@@ -25,7 +25,7 @@ this repo or another, so that adopting or replacing an engine is one package's c
 ## Decision
 
 A tool is an isolated package under `tools/<name>/` that follows the contract in
-`tools/README.md`, enforced by `scripts/check_tools.py` in `just check`:
+`tools/README.md`, enforced by `scripts/check_isolation.py` in `just check`:
 
 - src layout (`src/<name>/`), own `pyproject.toml` whose project name equals the folder, `tests/`, `README.md`, `__version__` and `__all__`.
 - It imports only what its own `pyproject.toml` declares: never `quant`, `scripts`, `dashboards` or `tests`; another tool only when listed as a dependency.

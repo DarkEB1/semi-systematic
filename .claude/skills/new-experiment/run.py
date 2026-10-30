@@ -5,8 +5,8 @@ create:  research/experiments/<date>-<slug>/{config.yaml, run.py, results.md, fi
 finish:  `--finish` drafts results.md and knowledge/research-log/<date>-<slug>.md from
          config.yaml and the files under outputs/; it never invents a number that is not in outputs/.
 dupes:   `--check-dupes` (also run by --finish) flags functions whose source is identical to one in
-         another experiment's run.py: the reuse rule says move it to research/signals or src/quant
-         on second use, with a test, in its own PR.
+         another experiment's run.py: the reuse rule says move it to a tool (tools/<name>, see
+         `just new-tool`) on second use, with a test, in its own PR. Experiments never import each other.
 """
 
 from __future__ import annotations
@@ -206,7 +206,7 @@ def check_dupes(folder: Path) -> list[str]:
                 for mk, mv in mine.items():
                     if mv == h:
                         warnings.append(
-                            f"duplicate: {mk} == {other.name}/{py.name}:{name}; second use -> move to research/signals/ or src/quant/ with a test, in its own PR"
+                            f"duplicate: {mk} == {other.name}/{py.name}:{name}; second use -> move to a tool (tools/<name>, `just new-tool`) with a test, in its own PR"
                         )
     return warnings
 

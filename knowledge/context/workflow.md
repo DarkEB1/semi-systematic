@@ -51,9 +51,10 @@ the merge to main promotes it to `curated/<name>/snapshot=<date>/`.
 
 ## The reuse rule
 
-Code moves out of an experiment into `research/signals/` or `src/quant/` only when a second
-experiment needs it, with a test, in its own PR. Until then, duplication is fine and the
-new-experiment skill merely flags it.
+Code moves out of an experiment into a tool (`just new-tool <name>`, or an existing one under
+`tools/`) only when a second experiment needs it, with a test, in its own PR. Until then,
+duplication is fine and the new-experiment skill merely flags it. Experiments never import each
+other: they meet only in the data layer, the dashboard and `knowledge/`.
 
 ## Friday: the PR and the index
 

@@ -20,7 +20,7 @@ class Repo:
     datasets: str = "catalog/datasets"
     experiments: str = "research/experiments"
     skills: str = ".claude/skills"
-    code: tuple[str, ...] = ("src", "research/signals")
+    code: tuple[str, ...] = ("src", "tools")
     index_dir: str = ".index"
     index_md: str = "knowledge/INDEX.md"
     skip_parts: tuple[str, ...] = ("templates", ".obsidian", "__pycache__")

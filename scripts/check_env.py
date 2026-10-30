@@ -20,7 +20,7 @@ SCAN_DIRS = [
     "dashboards",
     ".claude/skills",
     ".github/workflows",
-    "research/signals",
+    "research/experiments",
 ]
 SCAN_FILES = ["justfile"]
 CODE_EXT = {".py", ".sh", ".bash", ".yml", ".yaml", ""}

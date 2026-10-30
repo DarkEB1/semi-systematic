@@ -4,7 +4,7 @@
 Writes pyproject.toml, src/<name>/__init__.py, tests/test_<name>.py and README.md, then registers
 the tool in the root pyproject ([project.dependencies] and [tool.uv.sources]). Finish with
 `uv lock && just setup` so the lockfile and the venv know the new member. The contract every tool
-follows is tools/README.md; `just check` enforces it (scripts/check_tools.py).
+follows is tools/README.md; `just check` enforces it (scripts/check_isolation.py).
 """
 
 from __future__ import annotations

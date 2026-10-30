@@ -11,13 +11,13 @@ Paste-ready prompts for assistants other than Claude Code: `ai/prompts/<skill>.m
 | area | where | what |
 |---|---|---|
 | 1. context | `knowledge/` (`context/`, `decisions/`, `meetings/`, `notes/<handle>/`, `research-log/`, `agent-log/`, `templates/`, `INDEX.md`) | the team's memory as plain text with frontmatter; opens as an Obsidian vault |
-| 2. research | `research/experiments/<date>-<slug>/`, `research/signals/` | reproducible experiments (config.yaml, marimo run.py, results.md, figures/) and code reused by 2+ experiments |
-| 3. dashboards | `dashboards/hub/` | one marimo hub: data-health, experiments, knowledge, agent-log, signals |
+| 2. research | `research/experiments/<date>-<slug>/` | reproducible, isolated experiments (config.yaml, marimo run.py, results.md, figures/); code reused by 2+ experiments becomes a tool |
+| 3. dashboards | `dashboards/hub/` | one marimo hub: experiments, data-health, knowledge, agent-log, tools; reads everything, imported by nothing |
 | 4. tools | `tools/<name>/` (`brain` retrieval index, `backtest` reserved) | isolated packages: src layout, own pyproject, declared deps only, no knowledge of the repo; contract `tools/README.md`; `just new-tool NAME` |
 | 5. AI meta | `ai/prompts/`, `ai/evals/<skill>/`, `ai/tasks/<slug>.yaml`, `ai/models.yaml`; skills in `.claude/skills/` | prompts, golden evals, budgeted tasks, model names |
 | 6. other | `src/quant/` (library), `tests/`, `catalog/` (views, dataset READMEs, reference CSVs), `promote/requests/`, `scripts/`, `assets/` | the data layer and plumbing |
 
-## The eight rules
+## The nine rules
 
 1. **Run `just test` before claiming anything works.** `just check` too; CI runs both plus `just eval`.
 2. **Never write `raw/` or `curated/`.** `raw/` is written only by `ingest.yml` (may overwrite a
@@ -36,6 +36,10 @@ Paste-ready prompts for assistants other than Claude Code: `ai/prompts/<skill>.m
 7. **Every agent task ends with an agent-log entry** (`knowledge/agent-log/`, template
    `knowledge/templates/agent-log.md`) linking every file it touched and every file it relied on.
 8. **Search before you act**: `just search "<topic>"` for prior decisions, experiments and notes.
+9. **Everything is isolated; it comes together only in the data layer, the dashboard and
+   `knowledge/`.** An experiment, a tool or a skill imports `quant.data` and tools, never another
+   experiment, another unit's internals or the dashboard. Shared code becomes a tool
+   (`just new-tool`); `just check` enforces the import rules (ADR-0003).
 
 ## Data layer in one paragraph
 
@@ -44,8 +48,8 @@ Paste-ready prompts for assistants other than Claude Code: `ai/prompts/<skill>.m
 Partitions: daily `year=/month=`, intraday `date=` with one file per asset class, curated
 `snapshot=YYYY-MM-DD`. `quant.data.load(config)` returns only the datasets an experiment names at
 the snapshots it names. The Schema table in `catalog/datasets/<name>.md` is the contract for
-`curated/<name>/`; raw is stored as received. Reuse rule: code moves from an experiment to
-`research/signals/` or `src/quant/` only on second use, with a test, in its own PR.
+`curated/<name>/`; raw is stored as received. Reuse rule: code moves from an experiment into a
+tool only on second use, with a test, in its own PR; `src/quant/` holds data-layer code only.
 
 ## Skills (`.claude/skills/<name>/SKILL.md` + deterministic `run.py`)
 
