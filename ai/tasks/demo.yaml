@@ -6,6 +6,8 @@ metric: 'TODO: the number that says whether an iteration helped'
 skill: new-experiment
 args:
 - '{slug}-{i}'
+- --project
+- demo
 - --owner
 - DarkEB1
 - --dry-run
@@ -14,6 +16,6 @@ budget:
   max_hours: 1.0
 stop_conditions: []
 allowed_paths:
-- research/experiments/
+- research/
 - knowledge/agent-log/
 - knowledge/research-log/

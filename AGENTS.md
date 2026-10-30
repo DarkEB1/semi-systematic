@@ -11,7 +11,7 @@ Paste-ready prompts for assistants other than Claude Code: `ai/prompts/<skill>.m
 | area | where | what |
 |---|---|---|
 | 1. context | `knowledge/` (`context/`, `decisions/`, `meetings/`, `notes/<handle>/`, `research-log/`, `agent-log/`, `templates/`, `INDEX.md`) | the team's memory as plain text with frontmatter; opens as an Obsidian vault |
-| 2. research | `research/experiments/<date>-<slug>/` | reproducible, isolated experiments (config.yaml, marimo run.py, results.md, figures/); code reused by 2+ experiments becomes a tool |
+| 2. research | `research/<project>/` (README + `experiments/<date>-<slug>/`) | a project is a folder and an isolated unit; experiments (config.yaml, marimo run.py, results.md, figures/) live inside one; code reused by 2+ experiments becomes a tool |
 | 3. dashboards | `dashboards/hub/` | one marimo hub: experiments, data-health, knowledge, agent-log, tools; reads everything, imported by nothing |
 | 4. tools | `tools/<name>/` (`brain` retrieval index, `backtest` reserved) | isolated packages: src layout, own pyproject, declared deps only, no knowledge of the repo; contract `tools/README.md`; `just new-tool NAME` |
 | 5. AI meta | `ai/prompts/`, `ai/evals/<skill>/`, `ai/tasks/<slug>.yaml`, `ai/models.yaml`; skills in `.claude/skills/` | prompts, golden evals, budgeted tasks, model names |
@@ -85,7 +85,7 @@ PR), and ends with the agent-log entry. Each skill has a golden eval in `ai/eval
 `setup` · `onboard` · `check` · `test` · `eval` · `ingest SOURCE [--since D]` · `refresh` ·
 `promote REQUEST` · `promote-request NAME KEY` · `scaffold-source SOURCE` · `data-health` · `audit` ·
 `ls PREFIX` · `backup` · `index` · `index-upload` · `search QUERY` · `embed` · `tags` ·
-`meeting DATE TITLE` · `where THING` · `experiment SLUG [--finish]` · `dashboard` · `new-tool NAME` ·
+`meeting DATE TITLE` · `where THING` · `project SLUG` · `experiment SLUG --project P [--finish]` · `dashboard` · `new-tool NAME` ·
 `task SLUG` · `loop SLUG`
 
 Scripts, skills and workflows call these recipes, never raw commands. Storage facts (bucket,

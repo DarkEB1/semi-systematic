@@ -85,8 +85,12 @@ def repo(tmp_path: Path) -> Repo:
     (tmp_path / "catalog" / "datasets" / "d.md").write_text(
         ADR.replace("type: decision", "type: dataset").replace("ADR-0001-x", "d"), encoding="utf-8"
     )
-    exp = tmp_path / "research" / "experiments" / "2026-01-01-demo"
+    exp = tmp_path / "research" / "demo" / "experiments" / "2026-01-01-demo"
     exp.mkdir(parents=True)
+    (tmp_path / "research" / "demo" / "README.md").write_text(
+        ADR.replace("type: decision", "type: project").replace("ADR-0001-x", "demo"),
+        encoding="utf-8",
+    )
     (exp / "config.yaml").write_text(
         "slug: demo\nowner: t\ndatasets:\n  - name: prices_daily\n    snapshot: 2026-01-01\n",
         encoding="utf-8",
@@ -124,10 +128,11 @@ def test_chunk_python_per_toplevel_with_docstring_first():
 
 
 def test_chunk_experiment_config_and_results(repo: Repo):
-    exp = repo.path("research/experiments/2026-01-01-demo")
+    exp = repo.path("research/demo/experiments/2026-01-01-demo")
     (c,) = chunk(exp / "config.yaml", (exp / "config.yaml").read_text(), repo)
     assert c.type == "experiment" and c.title == "demo" and c.datasets == ["prices_daily"]
-    assert c.date == "2026-01-01" and c.path == "research/experiments/2026-01-01-demo/config.yaml"
+    assert c.date == "2026-01-01"
+    assert c.path == "research/demo/experiments/2026-01-01-demo/config.yaml"
     res = chunk(exp / "results.md", (exp / "results.md").read_text(), repo)
     assert {r.type for r in res} == {"results"}
 
@@ -138,6 +143,7 @@ def test_collect_skips_templates_and_index_md(repo: Repo):
     assert "knowledge/notes/t/2026-01-01-x.md" in rels
     assert "catalog/datasets/d.md" in rels
     assert ".claude/skills/s/SKILL.md" in rels
+    assert "research/demo/README.md" in rels and any("/experiments/" in r for r in rels)
     assert "src/pkg/x.py" in rels
     assert not any("templates" in r or r.endswith("INDEX.md") for r in rels)
 
@@ -173,7 +179,7 @@ def test_index_md_has_three_sections_and_relative_links(repo: Repo):
     md = render_index(repo)
     assert "## By type" in md and "## By tag" in md and "## By owner" in md
     assert "(decisions/ADR-0001-x.md)" in md and "(../catalog/datasets/d.md)" in md
-    assert "### dataset" in md
+    assert "### dataset" in md and "### project" in md
 
 
 def test_custom_layout_and_index_dir(tmp_path: Path):

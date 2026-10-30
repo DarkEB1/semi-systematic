@@ -6,7 +6,7 @@ walked, relative to ``repo.root``:
 
 - ``repo.knowledge/**/*.md`` (skipping ``private: true``, templates, INDEX.md)
 - ``repo.datasets/*.md``
-- ``repo.experiments/*/config.yaml`` and ``results.md``
+- ``repo.projects`` (project READMEs), ``repo.experiments/*/config.yaml`` and ``results.md``
 - ``repo.skills/*/SKILL.md``
 - ``*.py`` under each folder in ``repo.code`` (one chunk per top-level function/class, docstring first)
 
@@ -109,14 +109,13 @@ def _h1(body: str) -> str | None:
 def chunk(path: Path, text: str, repo: Repo | None = None) -> list[Chunk]:
     """The single chunking function. Replace this to change how everything is split.
 
-    ``repo`` makes paths repo-relative and tells results.md files apart from other markdown;
-    without it the path is used as given."""
+    ``repo`` makes paths repo-relative; without it the path is used as given. A results.md under an
+    experiments/ folder is typed ``results``."""
     path = Path(path)
     rel = repo.rel(path) if repo else path.as_posix()
-    experiments = (repo.experiments if repo else "research/experiments").strip("/") + "/"
     name = path.name
     if name.endswith(".md"):
-        return _chunk_markdown(rel, path, text, experiments)
+        return _chunk_markdown(rel, path, text)
     if name == "config.yaml":
         return _chunk_experiment_config(rel, text)
     if name.endswith(".py"):
@@ -124,14 +123,14 @@ def chunk(path: Path, text: str, repo: Repo | None = None) -> list[Chunk]:
     return []
 
 
-def _chunk_markdown(rel: str, path: Path, text: str, experiments: str) -> list[Chunk]:
+def _chunk_markdown(rel: str, path: Path, text: str) -> list[Chunk]:
     fm, body = split_frontmatter(text)
     if fm.get("private") is True:
         return []
     if path.name == "SKILL.md":
         typ = "skill"
         title = str(fm.get("name") or _h1(body) or path.parent.name)
-    elif path.name == "results.md" and experiments in rel:
+    elif path.name == "results.md" and "/experiments/" in f"/{rel}":
         typ = "results"
         title = str(fm.get("title") or _h1(body) or path.parent.name)
     else:
@@ -281,7 +280,8 @@ def collect(repo: Repo) -> list[Path]:
             if not _skip(repo, p) and p.resolve() != repo.index_md_path.resolve()
         ]
     paths += sorted(repo.path(repo.datasets).glob("*.md"))
-    for exp in sorted(repo.path(repo.experiments).glob("*/")):
+    paths += sorted(repo.root.glob(repo.projects))
+    for exp in sorted(repo.root.glob(repo.experiments + "/*/")):
         for nm in ("config.yaml", "results.md"):
             if (exp / nm).exists():
                 paths.append(exp / nm)

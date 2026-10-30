@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-"""Deterministic part of the new-experiment skill (`just experiment SLUG`).
+"""Deterministic part of the new-experiment skill (`just experiment SLUG --project P`).
 
-create:  research/experiments/<date>-<slug>/{config.yaml, run.py, results.md, figures/}
+create:  research/<project>/experiments/<date>-<slug>/{config.yaml, run.py, results.md, figures/}
 finish:  `--finish` drafts results.md and knowledge/research-log/<date>-<slug>.md from
          config.yaml and the files under outputs/; it never invents a number that is not in outputs/.
 dupes:   `--check-dupes` (also run by --finish) flags functions whose source is identical to one in
-         another experiment's run.py: the reuse rule says move it to a tool (tools/<name>, see
-         `just new-tool`) on second use, with a test, in its own PR. Experiments never import each other.
+         another experiment's run.py, in any project: the reuse rule says move it to a tool
+         (tools/<name>, see `just new-tool`) on second use, with a test, in its own PR.
+         Experiments never import each other (ADR-0003); projects are folders (ADR-0004).
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
-EXPERIMENTS = ROOT / "research" / "experiments"
+RESEARCH = ROOT / "research"
 RESEARCH_LOG = ROOT / "knowledge" / "research-log"
 TEAM = ROOT / "knowledge" / "context" / "team.yaml"
 
@@ -78,6 +79,16 @@ if __name__ == "__main__":
 """
 
 
+def projects() -> list[str]:
+    if not RESEARCH.exists():
+        return []
+    return sorted(p.name for p in RESEARCH.iterdir() if (p / "README.md").exists())
+
+
+def experiment_dirs() -> list[Path]:
+    return sorted(p for p in RESEARCH.glob("*/experiments/*/") if p.is_dir())
+
+
 def default_owner() -> str:
     if os.getenv("R2_HANDLE"):
         return os.environ["R2_HANDLE"]
@@ -89,6 +100,7 @@ def default_owner() -> str:
 
 def config_text(
     slug: str,
+    project: str,
     owner: str,
     date: str,
     hypothesis: str,
@@ -102,6 +114,7 @@ def config_text(
         ds.append({"name": name, "snapshot": snap or "YYYY-MM-DD"})
     cfg = {
         "slug": slug,
+        "project": project,
         "date": date,
         "owner": owner,
         "hypothesis": hypothesis,
@@ -142,6 +155,7 @@ _PNG files under figures/, each under 1 MB._
 
 def files_for(
     slug: str,
+    project: str,
     owner: str,
     date: str,
     hypothesis: str,
@@ -149,9 +163,11 @@ def files_for(
     parent: str | None,
     seed: int,
 ) -> dict[str, str]:
-    folder = f"research/experiments/{date}-{slug}"
+    folder = f"research/{project}/experiments/{date}-{slug}"
     return {
-        f"{folder}/config.yaml": config_text(slug, owner, date, hypothesis, datasets, parent, seed),
+        f"{folder}/config.yaml": config_text(
+            slug, project, owner, date, hypothesis, datasets, parent, seed
+        ),
         f"{folder}/run.py": NOTEBOOK,
         f"{folder}/results.md": results_text(slug, owner, date, hypothesis),
         f"{folder}/figures/.gitkeep": "",
@@ -198,15 +214,16 @@ def check_dupes(folder: Path) -> list[str]:
     for py in folder.rglob("*.py"):
         mine.update({f"{py.name}:{k}": v for k, v in _function_hashes(py).items()})
     warnings = []
-    for other in sorted(EXPERIMENTS.glob("*/")):
+    for other in experiment_dirs():
         if other.resolve() == folder.resolve():
             continue
+        other_rel = other.relative_to(RESEARCH).as_posix()
         for py in other.rglob("*.py"):
             for name, h in _function_hashes(py).items():
                 for mk, mv in mine.items():
                     if mv == h:
                         warnings.append(
-                            f"duplicate: {mk} == {other.name}/{py.name}:{name}; second use -> move to a tool (tools/<name>, `just new-tool`) with a test, in its own PR"
+                            f"duplicate: {mk} == {other_rel}/{py.name}:{name}; second use -> move to a tool (tools/<name>, `just new-tool`) with a test, in its own PR"
                         )
     return warnings
 
@@ -217,6 +234,8 @@ def check_dupes(folder: Path) -> list[str]:
 def finish(folder: Path, owner: str, date: str, dry_run: bool) -> int:
     cfg = yaml.safe_load((folder / "config.yaml").read_text(encoding="utf-8")) or {}
     slug = str(cfg.get("slug") or folder.name)
+    project = str(cfg.get("project") or folder.parent.parent.name)
+    folder_rel = folder.relative_to(ROOT).as_posix()
     outputs = sorted((folder / "outputs").glob("*")) if (folder / "outputs").exists() else []
     result_lines: list[str] = []
     for f in outputs:
@@ -273,20 +292,22 @@ def finish(folder: Path, owner: str, date: str, dry_run: bool) -> int:
         else []
     )
     log_id = f"{date}-{slug}"
+    title = cfg.get("hypothesis", slug).strip().splitlines()[0][:100]
     log = f"""---
 id: {log_id}
 type: research-log
-title: "{cfg.get("hypothesis", slug).strip().splitlines()[0][:100]}"
+title: "{title}"
 date: {date}
 authors: [{owner}]
 owner: {owner}
 status: draft
 tags: [{", ".join(tags)}]
 datasets: [{", ".join(str(d.get("name")) for d in datasets)}]
-related: []
+project: {project}
+related: [{project}]
 ---
 
-# {cfg.get("hypothesis", slug).strip().splitlines()[0][:100]}
+# {title}
 
 ## Hypothesis
 
@@ -299,7 +320,7 @@ related: []
 ## Method
 
 Params from config.yaml: `{json.dumps(cfg.get("params", {}), sort_keys=True)}`; seed {cfg.get("seed")}.
-Notebook: [{folder.name}/run.py](../../research/experiments/{folder.name}/run.py).
+Notebook: [{folder.name}/run.py](../../{folder_rel}/run.py).
 
 ## Result
 
@@ -311,10 +332,11 @@ _TODO: keep / park / kill, and the one thing you would do next._
 
 ## Links
 
-- experiment: [research/experiments/{folder.name}](../../research/experiments/{folder.name}/results.md)
+- project: [research/{project}](../../research/{project}/README.md)
+- experiment: [{folder_rel}](../../{folder_rel}/results.md)
 """
     files = {
-        f"research/experiments/{folder.name}/results.md": new_results,
+        f"{folder_rel}/results.md": new_results,
         f"knowledge/research-log/{log_id}.md": log,
     }
     for w in check_dupes(folder):
@@ -338,9 +360,23 @@ _TODO: keep / park / kill, and the one thing you would do next._
 # --------------------------------------------------------------------------- main
 
 
+def find_folder(slug: str, project: str | None, date: str) -> Path | None:
+    roots = [RESEARCH / project / "experiments"] if project else [RESEARCH]
+    pattern = f"{date}-{slug}" if project else f"*/experiments/{date}-{slug}"
+    exact = [p for r in roots for p in r.glob(pattern) if p.is_dir()]
+    if exact:
+        return exact[-1]
+    loose = f"*-{slug}" if project else f"*/experiments/*-{slug}"
+    matches = sorted(p for r in roots for p in r.glob(loose) if p.is_dir())
+    return matches[-1] if matches else None
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="just experiment")
     p.add_argument("slug", help="short-kebab-slug")
+    p.add_argument(
+        "--project", default=None, help="project folder under research/ (required to create)"
+    )
     p.add_argument("--owner", default=None)
     p.add_argument("--date", default=None, help="YYYY-MM-DD (default today)")
     p.add_argument(
@@ -363,21 +399,38 @@ def main(argv: list[str] | None = None) -> int:
     owner = a.owner or default_owner()
     date = a.date or dt.date.today().isoformat()
     if a.finish or a.check_dupes:
-        matches = (
-            sorted(EXPERIMENTS.glob(f"*-{a.slug}"))
-            if not (EXPERIMENTS / f"{date}-{a.slug}").exists()
-            else [EXPERIMENTS / f"{date}-{a.slug}"]
-        )
-        if not matches:
-            print(f"no experiment folder for slug {a.slug!r}", file=sys.stderr)
+        folder = find_folder(a.slug, a.project, date)
+        if folder is None:
+            print(
+                f"no experiment folder for slug {a.slug!r} under research/*/experiments/",
+                file=sys.stderr,
+            )
             return 1
-        folder = matches[-1]
         if a.check_dupes and not a.finish:
             for w in check_dupes(folder):
                 print(w)
             return 0
         return finish(folder, owner, date, a.dry_run)
-    emit(files_for(a.slug, owner, date, a.hypothesis, a.dataset, a.parent, a.seed), a.dry_run)
+    known = projects()
+    if not a.project:
+        print(
+            "--project is required: "
+            + (", ".join(known) if known else "none yet")
+            + "; `just project <slug>` creates one",
+            file=sys.stderr,
+        )
+        return 2
+    if a.project not in known and not a.dry_run:
+        print(
+            f"no project research/{a.project}/README.md; `just project {a.project}` creates it"
+            + (f" (existing: {', '.join(known)})" if known else ""),
+            file=sys.stderr,
+        )
+        return 2
+    emit(
+        files_for(a.slug, a.project, owner, date, a.hypothesis, a.dataset, a.parent, a.seed),
+        a.dry_run,
+    )
     return 0
 
 

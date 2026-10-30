@@ -18,7 +18,8 @@ class Repo:
     root: Path
     knowledge: str = "knowledge"
     datasets: str = "catalog/datasets"
-    experiments: str = "research/experiments"
+    experiments: str = "research/*/experiments"  # glob; a project is a folder (ADR-0004)
+    projects: str = "research/*/README.md"  # glob; indexed as type project
     skills: str = ".claude/skills"
     code: tuple[str, ...] = ("src", "tools")
     index_dir: str = ".index"

@@ -17,7 +17,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 TASKS = ROOT / "ai" / "tasks"
 SKILLS = ROOT / ".claude" / "skills"
-DEFAULT_ALLOWED = ["research/experiments/", "knowledge/agent-log/", "knowledge/research-log/"]
+DEFAULT_ALLOWED = ["research/", "knowledge/agent-log/", "knowledge/research-log/"]
 
 
 def build(

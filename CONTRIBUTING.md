@@ -44,7 +44,8 @@ Every "where does X go" has one answer; `just where "<thing>"` prints it with th
 recipe. The common ones:
 
 - **A note**: copy `knowledge/templates/note.md` to `knowledge/notes/<you>/<date>-<slug>.md`. No recipe needed.
-- **An experiment**: `just experiment <slug>`; finish with `--finish`. See the [walkthrough](knowledge/context/walkthrough.md).
+- **A project**: `just project <slug> --goal "..."` creates `research/<slug>/` with a README; a project is a folder and an isolated unit (ADR-0004), never renamed.
+- **An experiment**: `just experiment <slug> --project <p>`; finish with `--finish`. See the [walkthrough](knowledge/context/walkthrough.md).
 - **A data source**: `just scaffold-source <source>` and the pull-data skill. The README under `catalog/datasets/` is the contract.
 - **A curated dataset**: `just promote-request <name> <scratch key>`; the merge does the copy.
 - **A meeting**: `just meeting <date> "<title>" < bullets.txt`.

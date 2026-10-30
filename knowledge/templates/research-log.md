@@ -35,4 +35,5 @@ related: []
 
 ## Links
 
-- experiment: [research/experiments/YYYY-MM-DD-slug](../../research/experiments/YYYY-MM-DD-slug/results.md)
+- project: [research/<project>](../../research/<project>/README.md)
+- experiment: [research/<project>/experiments/YYYY-MM-DD-slug](../../research/<project>/experiments/YYYY-MM-DD-slug/results.md)

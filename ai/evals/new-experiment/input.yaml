@@ -1,1 +1,1 @@
-args: ["eval-demo", "--owner", "DarkEB1", "--date", "2026-01-01", "--hypothesis", "Eval: EM carry mean-reverts after dollar shocks", "--dataset", "prices_daily:2026-01-01", "--dry-run"]
+args: ["eval-demo", "--project", "demo", "--owner", "DarkEB1", "--date", "2026-01-01", "--hypothesis", "Eval: EM carry mean-reverts after dollar shocks", "--dataset", "prices_daily:2026-01-01", "--dry-run"]

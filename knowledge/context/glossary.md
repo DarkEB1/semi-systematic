@@ -19,7 +19,8 @@ TODO: grow this as terms are used in discussion; one line per term, alphabetical
 - agent-log: the entry every agent task ends with, linking the files it touched and relied on.
 - catalog view: a DuckDB view in `catalog/catalog.sql` over bucket paths or reference CSVs.
 - curated: the `curated/` prefix; promoted, schema-checked, append-only snapshots.
-- experiment: a folder under `research/experiments/` with config.yaml, run.py, results.md, figures/.
+- project: a folder `research/<project>/` with a README and its own `experiments/`; an isolated unit.
+- experiment: a folder under `research/<project>/experiments/` with config.yaml, run.py, results.md, figures/.
 - frozen experiment: one whose results.md has `status: final`; `just check` refuses changes to it.
 - promote: moving a scratch Parquet to `curated/` through a request file and the schema contract.
 - raw: the `raw/` prefix; data as received, written only by the nightly ingest.

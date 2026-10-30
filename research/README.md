@@ -2,10 +2,17 @@
 
 Experiments and the code that graduates out of them.
 
-## experiments/
+## <project>/
 
-One folder per experiment, `YYYY-MM-DD-<slug>/`, created by `just experiment <slug>` and never
-renamed. Inside:
+A project is a folder (ADR-0004): `research/<project>/README.md` (frontmatter `type: project`, id
+equal to the folder name; template `knowledge/templates/project.md`) and `experiments/`.
+`just project <slug>` creates one. Projects are isolated units: they meet other projects only
+through datasets, the dashboard and `knowledge/`. Never renamed; a closed project is `status: final`.
+
+## <project>/experiments/
+
+One folder per experiment, `YYYY-MM-DD-<slug>/`, created by `just experiment <slug> --project
+<project>` and never renamed or moved between projects. Inside:
 
 | file | role |
 |---|---|
@@ -15,7 +22,7 @@ renamed. Inside:
 | `figures/` | PNGs under 1 MB each |
 | `outputs/` | gitignored; metrics and tables the notebook wrote; the only source of numbers |
 
-`just experiment <slug> --finish` drafts `results.md` and `knowledge/research-log/<date>-<slug>.md`
+`just experiment <slug> --finish` finds the folder in any project and drafts `results.md` and `knowledge/research-log/<date>-<slug>.md`
 from `outputs/`. `status: final` freezes the folder (`just check` fails later diffs); a follow-up
 is a new experiment with `parent: <slug>`. Full example: [knowledge/context/walkthrough.md](../knowledge/context/walkthrough.md).
 

@@ -1,4 +1,5 @@
 slug: demo
+project: demo
 date: '2026-10-29'
 owner: DarkEB1
 hypothesis: 'The day-one pipeline works: prices_daily loads and has no obvious gaps'

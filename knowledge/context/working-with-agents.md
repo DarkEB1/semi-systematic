@@ -72,6 +72,7 @@ file needs a budget; the runner refuses otherwise.
 
 ```text
 $ just task sweep-lookbacks --skill new-experiment \
+    --arg='{slug}-{i}' --arg=--project --arg=em-carry --arg=--owner --arg=DarkEB1 \
     --goal "find the lookback at which carry reversion stops improving" \
     --metric "sharpe after 5 bp costs from outputs/metrics.json"
 ```
@@ -87,6 +88,8 @@ metric: sharpe after 5 bp costs from outputs/metrics.json
 skill: new-experiment
 args:
 - '{slug}-{i}'
+- --project
+- em-carry
 - --owner
 - DarkEB1
 budget:
@@ -94,7 +97,7 @@ budget:
   max_hours: 1.0
 stop_conditions: []
 allowed_paths:
-- research/experiments/
+- research/
 - knowledge/agent-log/
 - knowledge/research-log/
 ```
@@ -114,7 +117,7 @@ looks like this (from [the demo in the repo](../agent-log/2026-10-29-loop-demo.m
 ## Task
 - goal: ...
 - budget: 2 iterations, 1.0 h
-- allowed paths: research/experiments/, knowledge/agent-log/, knowledge/research-log/
+- allowed paths: research/, knowledge/agent-log/, knowledge/research-log/
 - stop conditions: none (budget only)
 
 ## Summary

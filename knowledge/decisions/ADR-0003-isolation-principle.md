@@ -38,7 +38,7 @@ Isolated units, and what each may import:
 | unit | may import | never |
 |---|---|---|
 | a tool, `tools/<name>/` | its declared dependencies; another tool only if declared | `quant`, scripts, dashboards, research |
-| an experiment, `research/experiments/<x>/` | `quant` (the data layer), tools, third-party | another experiment, dashboards, scripts |
+| an experiment, `research/<project>/experiments/<x>/` | `quant` (the data layer), tools, third-party | another experiment, dashboards, scripts |
 | the data layer, `src/quant/` | third-party, tools | research, dashboards, scripts |
 | scripts and skill runners | `quant`, tools | research, dashboards |
 

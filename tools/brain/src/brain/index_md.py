@@ -1,6 +1,6 @@
 """Render the knowledge index (``repo.index_md``): by type (newest first), by tag, by owner.
-One line per file: date, title, owner, status, relative link. Dataset READMEs are listed under
-type dataset so the index is the one table of contents."""
+One line per file: date, title, owner, status, relative link. Dataset READMEs (type dataset) and
+project READMEs (type project) are listed too, so the index is the one table of contents."""
 
 from __future__ import annotations
 
@@ -11,7 +11,16 @@ from pathlib import Path
 from brain.build import split_frontmatter
 from brain.repo import Repo
 
-TYPE_ORDER = ["context", "decision", "meeting", "research-log", "agent-log", "note", "dataset"]
+TYPE_ORDER = [
+    "context",
+    "project",
+    "decision",
+    "meeting",
+    "research-log",
+    "agent-log",
+    "note",
+    "dataset",
+]
 
 
 def entries(repo: Repo) -> list[dict]:
@@ -23,6 +32,7 @@ def entries(repo: Repo) -> list[dict]:
         and not any(s in p.relative_to(repo.root).parts for s in repo.skip_parts)
     ]
     files += list(repo.path(repo.datasets).glob("*.md"))
+    files += list(repo.root.glob(repo.projects))
     base = repo.index_md_path.parent
     out = []
     for p in sorted(files):

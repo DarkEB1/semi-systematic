@@ -8,7 +8,8 @@ owner: DarkEB1
 status: draft
 tags: [fx, data, data-quality]
 datasets: [prices_daily]
-related: [ADR-0001-initial-setup]
+project: demo
+related: [ADR-0001-initial-setup, demo]
 ---
 
 # Demo: prices_daily loads and has no obvious gaps
@@ -42,5 +43,6 @@ Pending. Keep: this is the smoke test every new source should pass before its PR
 
 ## Links
 
-- experiment: [research/experiments/2026-10-29-demo](../../research/experiments/2026-10-29-demo/results.md)
+- project: [research/demo](../../research/demo/README.md)
+- experiment: [research/demo/experiments/2026-10-29-demo](../../research/demo/experiments/2026-10-29-demo/results.md)
 - dataset: [catalog/datasets/prices_daily.md](../../catalog/datasets/prices_daily.md)

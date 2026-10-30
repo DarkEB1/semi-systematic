@@ -20,8 +20,17 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = ("id", "type", "title", "date", "authors", "owner")
-OPTIONAL = ("status", "tags", "datasets", "related", "private")
-TYPES = {"context", "decision", "meeting", "note", "research-log", "agent-log", "dataset"}
+OPTIONAL = ("status", "tags", "datasets", "related", "private", "project")
+TYPES = {
+    "context",
+    "decision",
+    "meeting",
+    "note",
+    "research-log",
+    "agent-log",
+    "dataset",
+    "project",
+}
 STATUSES = {
     "draft",
     "active",
@@ -80,8 +89,11 @@ def check_file(path: Path, tags: dict[str, str], handles: list[str]) -> list[str
     unknown = set(fm) - set(REQUIRED) - set(OPTIONAL)
     if unknown:
         errs.append(f"{rel}: unknown frontmatter keys {sorted(unknown)}")
-    if fm.get("id") != path.stem:
-        errs.append(f"{rel}: id {fm.get('id')!r} must equal filename stem {path.stem!r}")
+    expected_id = path.parent.name if path.name == "README.md" else path.stem
+    if fm.get("id") != expected_id:
+        errs.append(
+            f"{rel}: id {fm.get('id')!r} must equal {expected_id!r} (filename stem, or the folder for a README)"
+        )
     typ = fm.get("type")
     if typ not in TYPES:
         errs.append(f"{rel}: unknown type {typ!r} (one of {sorted(TYPES)})")
@@ -136,8 +148,10 @@ def check_meeting_decisions(rel: str, body: str) -> list[str]:
 def target_files(args: list[str]) -> list[Path]:
     if args:
         return [Path(a).resolve() for a in args if a.endswith(".md")]
-    files = list((ROOT / "knowledge").rglob("*.md")) + list(
-        (ROOT / "catalog" / "datasets").glob("*.md")
+    files = (
+        list((ROOT / "knowledge").rglob("*.md"))
+        + list((ROOT / "catalog" / "datasets").glob("*.md"))
+        + list((ROOT / "research").glob("*/README.md"))
     )
     skip = {ROOT / "knowledge" / "INDEX.md"}
     return [

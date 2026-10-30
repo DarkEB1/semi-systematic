@@ -11,7 +11,8 @@ judgement in the Verdict. The eval fixture is `ai/evals/new-experiment/`.
 
 ## Inputs
 
-- `SLUG` (short-kebab-case), the owner's handle (defaults to `R2_HANDLE`), a one-line hypothesis.
+- `SLUG` (short-kebab-case), the project it belongs to (`--project`, a folder under `research/`;
+  `just project <p>` creates one), the owner's handle (defaults to `R2_HANDLE`), a one-line hypothesis.
 - Datasets as `name:snapshot` pairs; snapshots are dates of curated snapshots (`just search "<name>"`
   or the dashboard's data page lists them). An experiment may also read raw views, but then say so.
 - Optional `--parent SLUG` when this follows a frozen experiment.
@@ -20,12 +21,13 @@ judgement in the Verdict. The eval fixture is `ai/evals/new-experiment/`.
 
 1. Search first: `just search "<hypothesis keywords>"` and read any research-log entry that comes
    back. If the idea was killed, stop and tell the human why; link the entry.
-2. Scaffold: `just experiment <slug> --hypothesis "..." --dataset name:snapshot`. This creates
-   `research/experiments/<today>-<slug>/` with `config.yaml`, `run.py`, `results.md` (status draft)
+2. Scaffold: `just experiment <slug> --project <p> --hypothesis "..." --dataset name:snapshot`
+   (the project folder must exist: `just project <p>` creates it with a README). This creates
+   `research/<project>/experiments/<today>-<slug>/` with `config.yaml`, `run.py`, `results.md` (status draft)
    and `figures/`. Never rename the folder afterwards.
 3. Edit `config.yaml` (params, seed) and `run.py`. The notebook must read data only through
    `quant.data.load(config)` and must write anything quotable to `outputs/`.
-4. Run it: `uv run research/experiments/<folder>/run.py` (headless) or `marimo edit` in the devcontainer.
+4. Run it: `uv run research/<project>/experiments/<folder>/run.py` (headless) or `marimo edit` in the devcontainer.
 5. Check for duplicated code: `just experiment <slug> --check-dupes`. A duplicate means the reuse
    rule applies: move the function to a tool (`just new-tool <name>`, or an existing one under
    `tools/`) with a test, in its own PR, before this experiment's PR. Experiments never import

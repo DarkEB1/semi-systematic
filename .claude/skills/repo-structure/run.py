@@ -48,10 +48,16 @@ MAP: list[tuple[tuple[str, ...], str, str, str]] = [
         "promote-dataset skill: just promote-request <name> <scratch key>",
     ),
     (
-        ("experiment", "notebook", "hypothesis", "backtest", "run.py"),
-        "research/experiments/<date>-<slug>/{config.yaml, run.py, results.md, figures/}",
-        "frozen when results.md says status: final; follow-ups are new experiments with parent:",
-        "new-experiment skill: just experiment <slug>",
+        ("experiment", "notebook", "hypothesis", "run.py"),
+        "research/<project>/experiments/<date>-<slug>/{config.yaml, run.py, results.md, figures/}",
+        "lives inside one project; frozen when results.md says status: final; follow-ups are new experiments with parent:; never imports another experiment (ADR-0003)",
+        "new-experiment skill: just experiment <slug> --project <p>",
+    ),
+    (
+        ("project", "research line", "programme", "workstream"),
+        "research/<project>/ with README.md (type project, id = folder) and experiments/",
+        "a project is a folder and an isolated unit (ADR-0004): it meets other projects only through datasets, the dashboard and knowledge/; never renamed",
+        "just project <slug>, then just experiment <slug> --project <project>",
     ),
     (
         ("signal", "reusable", "shared", "second use", "helper"),
@@ -151,7 +157,7 @@ MAP: list[tuple[tuple[str, ...], str, str, str]] = [
     ),
     (
         ("asset", "image", "logo", "figure"),
-        "assets/ (repo-wide) or research/experiments/<x>/figures/ (per experiment)",
+        "assets/ (repo-wide) or research/<project>/experiments/<x>/figures/ (per experiment)",
         "under 1 MB each",
         "commit; `just check` enforces the cap",
     ),

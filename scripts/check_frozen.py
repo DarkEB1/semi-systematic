@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Frozen experiments: fail when the diff touches research/experiments/<x>/ whose results.md has
+"""Frozen experiments: fail when the diff touches research/<project>/experiments/<x>/ whose results.md has
 ``status: final`` at the base revision. Freezing is one-way; a follow-up goes in a new experiment
 with ``parent:`` set in its config.yaml."""
 
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXP = "research/experiments/"
+EXP_RE = re.compile(r"^research/[^/]+/experiments/[^/]+/")
 
 
 def git(*args: str) -> str:
@@ -35,7 +35,7 @@ def changed_files(base: str | None) -> set[str]:
         files |= set(git("diff", "--name-only", base, "HEAD").split())
     files |= set(git("diff", "--name-only", "HEAD").split())
     files |= set(git("ls-files", "--others", "--exclude-standard").split())
-    return {f for f in files if f.startswith(EXP)}
+    return {f for f in files if EXP_RE.match(f)}
 
 
 def status_at(base: str | None, results_path: str) -> str | None:
@@ -53,9 +53,9 @@ def main() -> int:
     frozen: dict[str, list[str]] = {}
     for f in touched:
         parts = f.split("/")
-        if len(parts) < 3:
+        if len(parts) < 5:
             continue
-        folder = "/".join(parts[:3])
+        folder = "/".join(parts[:4])
         if status_at(base, f"{folder}/results.md") == "final":
             frozen.setdefault(folder, []).append(f)
     for folder, fs in sorted(frozen.items()):

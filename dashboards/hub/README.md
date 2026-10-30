@@ -19,7 +19,7 @@ shared across pages and each page reads the ones it understands.
 
 | page | shows | source | when to look |
 |---|---|---|---|
-| experiments | one row per `research/experiments/*/`: slug, date, owner, status, datasets with snapshots, parent, hypothesis | `config.yaml` and the `results.md` frontmatter | before starting an experiment, to see what exists; to find frozen ones |
+| experiments | the projects (`research/*/README.md`: title, owner, status, experiment count) and one row per `research/*/experiments/*/`: project, slug, date, owner, status, datasets with snapshots, parent, hypothesis | project READMEs, `config.yaml` and the `results.md` frontmatter | before starting an experiment, to see what exists; to find frozen ones |
 | data-health | one row per raw dataset: latest partition, expected date, days behind, owner | same code as `just data-health` | when a notebook loads less than you expected; the nightly workflow opens an issue per stale dataset |
 | knowledge | search box over the chunk index plus `knowledge/INDEX.md` by type, tag and owner | `just search` and `just index` | to answer "what do we know about X" without a terminal |
 | agent-log | every `knowledge/agent-log/*.md`, newest first | the files' frontmatter | weekly review of what agents did |

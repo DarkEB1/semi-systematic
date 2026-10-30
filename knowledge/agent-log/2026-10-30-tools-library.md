@@ -51,6 +51,17 @@ and skills), the hub's signals page became a tools page, brain indexes `tools/` 
 `research/signals/`. "Projects" are named in the ADR as a future unit under the same rule; their
 layout is a question for @DarkEB1.
 
+Third ask ("project is folder"): ADR-0004. `research/<project>/` holds `README.md` (type
+`project`, id equals the folder, template `knowledge/templates/project.md`) and `experiments/`.
+`just project SLUG` creates one (`scripts/new_project.py`); `just experiment SLUG --project P`
+requires an existing project and records `project` in `config.yaml`; `--finish` adds `project:`
+to the research-log entry and links the README. The frontmatter checker covers
+`research/*/README.md` and accepts the `project` key; `check_frozen`, `check_isolation`,
+`check_env`, brain (`Repo.projects`, experiments glob, type `project` in INDEX.md), the hub's
+experiments page (projects table first), the loop defaults and the demo task learned the extra
+level. The demo experiment moved to `research/demo/` with a README, the one move the ADR allows.
+The new-experiment golden changed by exactly the path and the `project` key.
+
 Done for the tools tier: `tools/README.md` (contract), `scripts/check_isolation.py` and `scripts/new_tool.py` with
 `just new-tool`, both tools moved to src layout, `brain` 0.2.0 with `Repo`, `--root` and
 fixture tests, consumers (`build-index/run.py`, hub pages, `upload_index.py`, two skill runners,
@@ -71,6 +82,7 @@ Not done, needs a human: the PR review; the decision on whether skill cores move
 - [dashboards/hub/pages/knowledge.py](../../dashboards/hub/pages/knowledge.py), [dashboards/hub/pages/data_health.py](../../dashboards/hub/pages/data_health.py)
 - [justfile](../../justfile), [pyproject.toml](../../pyproject.toml), [uv.lock](../../uv.lock)
 - [AGENTS.md](../../AGENTS.md), [CONTRIBUTING.md](../../CONTRIBUTING.md), [start-here](../context/start-here.md), [workflow](../context/workflow.md), [walkthrough](../context/walkthrough.md), [ADR-0002](../decisions/ADR-0002-tools-are-isolated-packages.md), [ADR-0003](../decisions/ADR-0003-isolation-principle.md), [knowledge/INDEX.md](../INDEX.md)
+- [ADR-0004](../decisions/ADR-0004-projects-are-folders.md), [knowledge/templates/project.md](../templates/project.md), [research/demo/README.md](../../research/demo/README.md), [scripts/new_project.py](../../scripts/new_project.py), [tests/test_new_project.py](../../tests/test_new_project.py), [scripts/check_frontmatter.py](../../scripts/check_frontmatter.py), [scripts/check_frozen.py](../../scripts/check_frozen.py), [scripts/task.py](../../scripts/task.py), [ai/tasks/demo.yaml](../../ai/tasks/demo.yaml), [ai/evals/new-experiment](../../ai/evals/new-experiment/expected.txt)
 - [scripts/check_isolation.py](../../scripts/check_isolation.py), [scripts/check_env.py](../../scripts/check_env.py), [dashboards/hub/pages/tools.py](../../dashboards/hub/pages/tools.py), [dashboards/hub/README.md](../../dashboards/hub/README.md), [research/README.md](../../research/README.md), [new-experiment/SKILL.md](../../.claude/skills/new-experiment/SKILL.md), [new-experiment/run.py](../../.claude/skills/new-experiment/run.py)
 
 ## Files relied on

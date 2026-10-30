@@ -6,7 +6,7 @@ Units and what each may import (ADR-0003):
 | unit | may import | never |
 |---|---|---|
 | tools/<name>/src | its declared dependencies (other tools only if declared) | quant, scripts, dashboards, research, tests |
-| research/experiments/<x> | quant (the data layer), tools, third-party | another experiment, research, dashboards, scripts, tests |
+| research/<project>/experiments/<x> | quant (the data layer), tools, third-party | another experiment, research, dashboards, scripts, tests |
 | src/quant | third-party, tools | research, dashboards, scripts, tests |
 | scripts, .claude/skills | quant, tools, third-party | research, dashboards |
 | dashboards/hub | anything (it is where things come together) | imported by nothing |
@@ -29,7 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / "tools"
-EXPERIMENTS = ROOT / "research" / "experiments"
+RESEARCH = ROOT / "research"
 REPO_UNITS = {"quant", "scripts", "dashboards", "pages", "tests", "research"}
 SYS_PATH_ALLOW = {
     "dashboards/hub/app.py",  # marimo runs app.py as a file; its pages/ package is next to it
@@ -130,7 +130,7 @@ def check_tool(
 
 def check_experiments() -> list[str]:
     errs: list[str] = []
-    for folder in sorted(p for p in EXPERIMENTS.glob("*/") if p.is_dir()):
+    for folder in sorted(p for p in RESEARCH.glob("*/experiments/*/") if p.is_dir()):
         files = _py_files(folder)
         errs += _forbid(files, REPO_UNITS - {"quant"} | {"."}, f"experiment {folder.name}")
     return errs
@@ -180,7 +180,7 @@ def main() -> int:
     errs += check_sys_path()
     for e in errs:
         print(e)
-    n_exp = len(list(EXPERIMENTS.glob("*/")))
+    n_exp = len(list(RESEARCH.glob("*/experiments/*/")))
     print(f"isolation: {len(tools)} tool(s), {n_exp} experiment(s) checked, {len(errs)} problem(s)")
     return 1 if errs else 0
 

@@ -112,7 +112,11 @@ where THING:
 
 # --- research ------------------------------------------------------------------
 
-# Create research/experiments/<today>-<slug>/ (or --finish to draft results and the log entry)
+# Create research/<slug>/ with a README and an experiments/ folder (a project is a folder)
+project SLUG *ARGS:
+    uv run python scripts/new_project.py "$1" "${@:2}"
+
+# Create research/<project>/experiments/<today>-<slug>/ (--project P; --finish drafts results and the log entry)
 experiment SLUG *ARGS:
     uv run python .claude/skills/new-experiment/run.py "$1" "${@:2}"
 

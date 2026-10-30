@@ -1,5 +1,6 @@
---- research/experiments/2026-01-01-eval-demo/config.yaml
+--- research/demo/experiments/2026-01-01-eval-demo/config.yaml
 slug: eval-demo
+project: demo
 date: '2026-01-01'
 owner: DarkEB1
 hypothesis: 'Eval: EM carry mean-reverts after dollar shocks'
@@ -10,7 +11,7 @@ params:
   cost_bp: 5
   lookback_days: 20
 seed: 0
---- research/experiments/2026-01-01-eval-demo/run.py
+--- research/demo/experiments/2026-01-01-eval-demo/run.py
 import marimo
 
 __generated_with = "0.25.2"
@@ -58,7 +59,7 @@ def _(HERE, config, json, tables):
 
 if __name__ == "__main__":
     app.run()
---- research/experiments/2026-01-01-eval-demo/results.md
+--- research/demo/experiments/2026-01-01-eval-demo/results.md
 ---
 slug: eval-demo
 status: draft
@@ -82,4 +83,4 @@ _Drafted by `just experiment eval-demo --finish` from outputs/; nothing here is 
 ## Figures
 
 _PNG files under figures/, each under 1 MB._
---- research/experiments/2026-01-01-eval-demo/figures/.gitkeep
+--- research/demo/experiments/2026-01-01-eval-demo/figures/.gitkeep

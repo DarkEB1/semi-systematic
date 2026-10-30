@@ -23,6 +23,7 @@ criteria.
 
 Inputs:
 - slug: <short-kebab-case>
+- project: <folder under research/; if it does not exist, run `just project <slug> --goal "..."` first and show me the README>
 - owner: <my GitHub handle>
 - hypothesis (one line, the market expectation we are betting against): <...>
 - datasets with snapshots: <name:YYYY-MM-DD, ...> (if no curated snapshot exists yet, say which raw view you will read instead and record that in the research-log entry)

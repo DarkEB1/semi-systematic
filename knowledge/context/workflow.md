@@ -25,7 +25,10 @@ already killed the idea, the research-log says why. If the idea survives, write 
 
 ## Tuesday: an experiment
 
-`just experiment carry-reversion` creates `research/experiments/2026-10-27-carry-reversion/` with
+Experiments live inside a project, which is a folder: `just project em-carry` creates
+`research/em-carry/README.md` (goal, hypotheses, data, status) once. Then
+`just experiment carry-reversion --project em-carry` creates
+`research/em-carry/experiments/2026-10-27-carry-reversion/` with
 `config.yaml` (slug, owner, hypothesis, datasets with snapshots, params, seed), a marimo `run.py`
 that loads exactly those datasets through `quant.data.load`, a `results.md` stub and `figures/`.
 Fill the hypothesis and params, pick the snapshot you want to be reproducible against, and run the

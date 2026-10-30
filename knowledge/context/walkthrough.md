@@ -48,23 +48,40 @@ Each hit is `path › heading [type, date]` and a snippet, newest first. The mat
 (`ILIKE`), so try two or three phrasings. Nothing found is an answer too: it means no file records
 it yet, and `just where "<thing>"` says where such a file would live.
 
-## 2. Create the experiment
+## 2. Create the project, then the experiment
+
+A project is a folder under `research/` and every experiment lives inside one. Create the project
+once:
 
 ```text
-$ just experiment carry-reversion \
-    --hypothesis "EM currencies with the steepest carry mean-revert after a dollar shock" \
-    --dataset prices_daily:2026-10-29
-research/experiments/2026-10-29-carry-reversion/config.yaml
-research/experiments/2026-10-29-carry-reversion/run.py
-research/experiments/2026-10-29-carry-reversion/results.md
-research/experiments/2026-10-29-carry-reversion/figures/.gitkeep
+$ just project em-carry --title "EM carry reversion" \
+    --goal "Do EM currencies with the steepest carry mean-revert after a dollar shock?"
+research/em-carry/README.md
+research/em-carry/experiments/.gitkeep
+next: fill the README, then `just experiment <slug> --project em-carry`
 ```
 
-`config.yaml` is the whole contract of the experiment. Edit `params` and `seed`; never the folder name.
+The README has frontmatter (`type: project`, `id: em-carry`) and four sections: Goal, Hypotheses,
+Data, Status. It is checked, indexed and listed in the hub like any knowledge file. Then:
+
+```text
+$ just experiment carry-reversion --project em-carry \
+    --hypothesis "EM currencies with the steepest carry mean-revert after a dollar shock" \
+    --dataset prices_daily:2026-10-29
+research/em-carry/experiments/2026-10-30-carry-reversion/config.yaml
+research/em-carry/experiments/2026-10-30-carry-reversion/run.py
+research/em-carry/experiments/2026-10-30-carry-reversion/results.md
+research/em-carry/experiments/2026-10-30-carry-reversion/figures/.gitkeep
+```
+
+Without `--project`, or with one that has no README yet, the command stops and names the
+existing projects. `config.yaml` is the whole contract of the experiment. Edit `params` and
+`seed`; never the folder name.
 
 ```yaml
 slug: carry-reversion
-date: '2026-10-29'
+project: em-carry
+date: '2026-10-30'
 owner: DarkEB1
 hypothesis: EM currencies with the steepest carry mean-revert after a dollar shock
 datasets:
@@ -84,8 +101,8 @@ is written to `outputs/`.
 ## 3. Run it
 
 ```text
-$ uv run research/experiments/2026-10-29-carry-reversion/run.py            # headless
-$ uv run marimo edit research/experiments/2026-10-29-carry-reversion/run.py   # interactive
+$ uv run research/em-carry/experiments/2026-10-30-carry-reversion/run.py            # headless
+$ uv run marimo edit research/em-carry/experiments/2026-10-30-carry-reversion/run.py   # interactive
 ```
 
 `load` reads `curated/prices_daily/snapshot=2026-10-29/`. If that snapshot does not exist the
@@ -97,9 +114,12 @@ instead, and say so in the research-log entry (the demo experiment does exactly 
 
 ```text
 $ just experiment carry-reversion --finish
-research/experiments/2026-10-29-carry-reversion/results.md
-knowledge/research-log/2026-10-29-carry-reversion.md
+research/em-carry/experiments/2026-10-30-carry-reversion/results.md
+knowledge/research-log/2026-10-30-carry-reversion.md
 ```
+
+`--finish` finds the folder in whichever project holds it. The research-log entry carries
+`project: em-carry` and links both the project README and the experiment.
 
 With an empty `outputs/` the Result section says so instead of inventing a number:
 
@@ -112,7 +132,8 @@ No files under outputs/. Run the notebook first; --finish quotes outputs only.
 With `outputs/metrics.json` present it pastes the JSON under `From outputs/metrics.json:`. The
 research-log entry is drafted with Hypothesis, Data (`prices_daily at snapshot 2026-10-29`),
 Method (params and seed from `config.yaml`, link to the notebook), Result, and a Verdict left as
-`TODO: keep / park / kill`. The Verdict is the one thing only you can write.
+`TODO: keep / park / kill`. The Verdict is the one thing only you can write. Update the project
+README's Status section with the verdict too; that file is where the project's story accumulates.
 
 `--finish` also runs the duplicate check. A line such as
 `duplicate: run.py:zscore == 2026-10-29-demo/run.py:zscore; second use -> move to a tool (tools/<name>, `just new-tool`) with a test, in its own PR`
@@ -203,6 +224,7 @@ fails a Decisions line that is neither. The transcript itself is never stored.
 
 ```text
 $ just task sweep-lookbacks --skill new-experiment \
+    --arg='{slug}-{i}' --arg=--project --arg=em-carry --arg=--owner --arg=DarkEB1 \
     --goal "find the lookback at which carry reversion stops improving" \
     --metric "sharpe after 5 bp costs from outputs/metrics.json"
 ai/tasks/sweep-lookbacks.yaml
