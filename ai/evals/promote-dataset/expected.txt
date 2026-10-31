@@ -1,0 +1,16 @@
+--- promote/requests/2026-10-29-prices_daily.yml
+name: prices_daily
+scratch_key: scratch/DarkEB1/prices_daily/data.parquet
+snapshot: '2026-10-29'
+requested_by: DarkEB1
+date: '2026-10-29'
+notes: eval fixture
+--- schema ok: 2 rows, 9 columns
+PR checklist (paste into the PR body):
+
+- [ ] `promote/requests/2026-10-29-prices_daily.yml` requests `prices_daily` at snapshot `2026-10-29`
+- [ ] the Parquet matched `catalog/datasets/prices_daily.md` (schema contract) locally
+- [ ] the README's Source, Cadence, Known gaps and Owner are filled, not TODO
+- [ ] `just check` and `just test` are green
+- [ ] no existing snapshot with the same date (promote never overwrites)
+- [ ] `promote/**` and `catalog/**` are under CODEOWNERS: this PR waits for the data-layer owner

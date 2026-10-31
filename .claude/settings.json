@@ -1,0 +1,82 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(just check)",
+      "Bash(just test)",
+      "Bash(just eval*)",
+      "Bash(just search *)",
+      "Bash(just where *)",
+      "Bash(just onboard)",
+      "Bash(just index)",
+      "Bash(just tags)",
+      "Bash(just data-health*)",
+      "Bash(uv run pytest*)",
+      "Bash(uv run ruff *)",
+      "Bash(uv run mypy *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "Bash(gh issue list*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git commit --no-verify*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/scripts/hooks/run.sh\" guard_bash.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/scripts/hooks/run.sh\" guard_edit.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/scripts/hooks/run.sh\" format_file.py",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "timeout": 30,
+            "prompt": "You check the last message of a Claude Code turn in the semi-systematic repo. Hook input: $ARGUMENTS. Return {\"ok\": true} unless BOTH hold: (1) the message claims that files in the repository were changed and that the work is done, fixed, passing or ready to merge; and (2) it shows no evidence of verification, meaning no result line or quoted output from `just check`, `just test`, `just eval`, pytest, ruff or mypy, and no explicit statement that the change is unverified. Answers to questions, plans, proposals, partial progress reports and messages that ask the user something are always ok. If stop_hook_active is true, return {\"ok\": true}. When not ok, return {\"ok\": false, \"reason\": \"Run `just check` and `just test` in the devcontainer and quote their result lines before finishing; if a gate cannot run, say so explicitly.\"}"
+          }
+        ]
+      }
+    ]
+  }
+}

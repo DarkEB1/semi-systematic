@@ -1,0 +1,16 @@
+symbol,yahoo_symbol,asset_class,region,base,quote,description
+EURUSD,EURUSD=X,fx,DM,EUR,USD,Euro vs US dollar
+GBPUSD,GBPUSD=X,fx,DM,GBP,USD,Pound sterling vs US dollar
+USDJPY,JPY=X,fx,DM,USD,JPY,US dollar vs Japanese yen
+USDBRL,BRL=X,fx,EM,USD,BRL,US dollar vs Brazilian real
+USDMXN,MXN=X,fx,EM,USD,MXN,US dollar vs Mexican peso
+USDZAR,ZAR=X,fx,EM,USD,ZAR,US dollar vs South African rand
+USDINR,INR=X,fx,EM,USD,INR,US dollar vs Indian rupee
+USDTRY,TRY=X,fx,EM,USD,TRY,US dollar vs Turkish lira
+USDKRW,KRW=X,fx,EM,USD,KRW,US dollar vs Korean won
+USDCNY,CNY=X,fx,EM,USD,CNY,US dollar vs Chinese yuan (onshore)
+USDPLN,PLN=X,fx,EM,USD,PLN,US dollar vs Polish zloty
+USDHUF,HUF=X,fx,EM,USD,HUF,US dollar vs Hungarian forint
+USDIDR,IDR=X,fx,EM,USD,IDR,US dollar vs Indonesian rupiah
+USDCLP,CLP=X,fx,EM,USD,CLP,US dollar vs Chilean peso
+USDCOP,COP=X,fx,EM,USD,COP,US dollar vs Colombian peso

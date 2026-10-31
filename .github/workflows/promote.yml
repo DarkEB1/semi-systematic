@@ -1,0 +1,59 @@
+name: promote
+
+# On merge to main of a promote request: validate the schema, copy the scratch Parquet to
+# curated/<name>/snapshot=<date>/ (never overwriting) and put the dataset README next to it.
+
+on:
+  push:
+    branches: [main]
+    paths: ["promote/requests/**"]
+  workflow_dispatch:
+    inputs:
+      request:
+        description: "Path of one request file, e.g. promote/requests/2026-10-29-prices_daily.yml"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    env:
+      QUANT_ROLE: promote
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.eu.r2.cloudflarestorage.com
+      R2_BUCKET: semi-sys-research-data
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_INGEST_KEY }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_INGEST_SECRET }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 2
+      - uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc # v6.4.3
+        with:
+          version: "0.13.6"
+          enable-cache: true
+      - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3.0.0
+        with:
+          just-version: "1.59.0"
+      - name: Sync locked environment
+        run: uv sync --frozen --all-groups
+      - name: Promote changed requests
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.request }}" ]; then
+            files="${{ inputs.request }}"
+          else
+            files="$(git diff --name-only --diff-filter=AM "${{ github.event.before }}" "${{ github.sha }}" -- 'promote/requests/*.yml' 'promote/requests/*.yaml' || true)"
+          fi
+          if [ -z "$files" ]; then echo "no request files changed"; exit 0; fi
+          for f in $files; do
+            echo "::group::just promote $f"
+            just promote "$f"
+            echo "::endgroup::"
+          done

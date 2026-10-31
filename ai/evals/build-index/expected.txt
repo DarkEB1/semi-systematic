@@ -1,0 +1,35 @@
+[
+ {
+  "heading": "",
+  "type": "note",
+  "title": "Sample note for the chunker",
+  "tags": [
+   "fx",
+   "idea"
+  ],
+  "chars": 65,
+  "first_line": "# Sample note for the chunker"
+ },
+ {
+  "heading": "Hypothesis",
+  "type": "note",
+  "title": "Sample note for the chunker",
+  "tags": [
+   "fx",
+   "idea"
+  ],
+  "chars": 43,
+  "first_line": "EM carry mean-reverts after a dollar shock."
+ },
+ {
+  "heading": "Data",
+  "type": "note",
+  "title": "Sample note for the chunker",
+  "tags": [
+   "fx",
+   "idea"
+  ],
+  "chars": 100,
+  "first_line": "```md"
+ }
+]

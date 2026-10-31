@@ -1,0 +1,17 @@
+# Models the agents in this repo may use. Names only; keys live in .env / repository secrets.
+# Adding a paid model is an ADR (costs money).
+default:
+  provider: anthropic
+  model: claude-fable-5-1
+  purpose: skills, loops, meeting-notes, build-index answers
+cheap:
+  provider: anthropic
+  model: claude-haiku-5-5
+  purpose: bulk classification and tagging
+embedding:
+  provider: null
+  model: null
+  purpose: "unset in v1; `just embed` errors until EMBEDDING_MODEL is configured (ADR-0001)"
+limits:
+  loop_default_max_iterations: 2
+  loop_default_max_hours: 1

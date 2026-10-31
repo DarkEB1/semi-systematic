@@ -1,0 +1,11 @@
+# gitleaks config for `just check` (gitleaks dir .) and the pre-commit hook.
+# The default rules apply; the local secrets file and generated dirs are never scanned.
+# .env is gitignored, so this only matters for working-tree scans.
+title = "semi-systematic"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "local secrets file and generated or vendored directories"
+paths = ['''(^|/)\.env$''', '''(^|/)\.venv/''', '''(^|/)\.index/''', '''(^|/)__pycache__/''', '''(^|/)node_modules/''']
