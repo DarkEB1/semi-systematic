@@ -50,6 +50,7 @@ recipe. The common ones:
 - **A data source**: `just scaffold-source <source>` and the pull-data skill. The README under `catalog/datasets/` is the contract.
 - **A curated dataset**: `just promote-request <name> <scratch key>`; the merge does the copy.
 - **A meeting**: `just meeting <date> "<title>" < bullets.txt`.
+- **A todo**: `just todo "<title>" --owner <handle> [--due <date>] [--project <slug>]` creates `knowledge/todos/<date>-<slug>.md`; `just todo <id> --move doing|done` moves it; the hub's board page shows the columns. An action from a meeting that outlives the meeting becomes a todo.
 - **A tag**: append one line, `- <tag>: <definition>`, to the right family in `knowledge/context/tags.md`, in the PR that first uses it. Tags are few on purpose.
 - **A teammate**: `knowledge/notes/<handle>/.gitkeep`, the handle in `knowledge/context/team.yaml`, a `/knowledge/notes/<handle>/ @<handle>` line in `.github/CODEOWNERS`, and an R2 token named `<handle>-scratch` created by the data-layer owner (never committed anywhere).
 - **A decision**: apply the ADR test (it changes a convention, a dependency, a data source, a method others will reuse, or costs money). Yes: copy `knowledge/templates/decision.md` to `knowledge/decisions/ADR-NNNN-<slug>.md` with the next number. No: a `(minor)` line in the minutes.

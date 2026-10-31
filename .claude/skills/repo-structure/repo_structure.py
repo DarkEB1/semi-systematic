@@ -162,6 +162,12 @@ MAP: list[tuple[tuple[str, ...], str, str, str]] = [
         "commit; `just check` enforces the cap",
     ),
     (
+        ("todo", "task", "kanban", "board", "ticket", "action item"),
+        "knowledge/todos/<date>-<slug>.md (type todo; status todo/doing/done is the column, owner is the handle)",
+        "one file per card, never renamed; the hub's board page renders them read-only (ADR-0006)",
+        '`just todo "<title>" --owner <handle>`; move with `just todo <id> --move doing`',
+    ),
+    (
         ("hook", "deny", "permission", "guard"),
         "scripts/hooks/<name>.py (stdlib python, exit 2 blocks) wired in .claude/settings.json; a deny rule for a tool pattern",
         "only zero-exception rules are enforced; everything else is Claude's judgement in auto mode, never a prompt to a person",

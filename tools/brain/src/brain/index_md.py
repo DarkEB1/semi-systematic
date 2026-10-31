@@ -16,6 +16,7 @@ TYPE_ORDER = [
     "project",
     "decision",
     "meeting",
+    "todo",
     "research-log",
     "agent-log",
     "note",

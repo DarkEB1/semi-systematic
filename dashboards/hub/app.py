@@ -14,7 +14,7 @@ def _():
     HERE = pathlib.Path(__file__).resolve().parent
     if str(HERE) not in sys.path:
         sys.path.insert(0, str(HERE))
-    from pages import agent_log, data_health, experiments, knowledge, tools
+    from pages import agent_log, board, data_health, experiments, knowledge, tools
 
     PAGES = {
         "experiments": experiments,
@@ -22,6 +22,7 @@ def _():
         "knowledge": knowledge,
         "agent-log": agent_log,
         "tools": tools,
+        "board": board,
     }
     page = mo.ui.dropdown(options=list(PAGES), value="experiments", label="page")
     return PAGES, mo, page
@@ -34,7 +35,9 @@ def _(mo):
     tag = mo.ui.text(label="tag")
     dataset = mo.ui.text(label="dataset")
     status = mo.ui.dropdown(
-        options=["", "draft", "final", "active", "superseded"], value="", label="status"
+        options=["", "draft", "final", "active", "superseded", "todo", "doing", "done"],
+        value="",
+        label="status",
     )
     query = mo.ui.text(label="search", placeholder="ILIKE over the chunk table")
     return dataset, owner, query, status, tag
@@ -52,6 +55,7 @@ def _(PAGES, dataset, mo, owner, page, query, status, tag):
     controls = {
         "experiments": [owner, tag, dataset, status],
         "knowledge": [query],
+        "board": [owner, status],
     }.get(page.value, [])
     body = PAGES[page.value].render(mo, filters)
     mo.vstack([mo.md("# semi-systematic hub"), mo.hstack([page, *controls]), body])

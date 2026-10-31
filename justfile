@@ -107,6 +107,10 @@ tags:
 meeting DATE TITLE *ARGS:
     uv run python .claude/skills/meeting-notes/meeting_notes.py "$1" "$2" "${@:3}"
 
+# The team board: just todo "<title>" [--owner H --due D --project P]; just todo <id> --move doing; just todo --list
+todo *ARGS:
+    uv run python scripts/todo.py "$@"
+
 # Explain where a new thing goes and check convention files agree: just where "ingest module"
 where THING:
     uv run python .claude/skills/repo-structure/repo_structure.py "$1"

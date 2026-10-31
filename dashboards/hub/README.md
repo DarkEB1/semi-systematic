@@ -1,6 +1,6 @@
 # Dashboard hub
 
-One marimo app, five pages, no state of its own. The hub is one of the three places where the isolated units of this repo come together (with the data layer and `knowledge/`), so it may read anything and is imported by nothing. Everything shown is read live from the repo
+One marimo app, six pages, no state of its own. The hub is one of the three places where the isolated units of this repo come together (with the data layer and `knowledge/`), so it may read anything and is imported by nothing. Everything shown is read live from the repo
 files, the catalog views or the retrieval index, so the hub is always as current as your checkout
 and the bucket.
 
@@ -23,6 +23,7 @@ shared across pages and each page reads the ones it understands.
 | data-health | one row per raw dataset: latest partition, expected date, days behind, owner | same code as `just data-health` | when a notebook loads less than you expected; the nightly workflow opens an issue per stale dataset |
 | knowledge | search box over the chunk index plus `knowledge/INDEX.md` by type, tag and owner | `just search` and `just index` | to answer "what do we know about X" without a terminal |
 | agent-log | every `knowledge/agent-log/*.md`, newest first | the files' frontmatter | weekly review of what agents did |
+| board | the team kanban: one column per status (todo, doing, done) of the cards under `knowledge/todos/`, each with owner, due date and project; filter by owner and status | the files' frontmatter; `just todo` creates and moves cards | daily; to see who owns what and what is late |
 | tools | every package under `tools/`: version, description, dependencies, public API | each tool's `pyproject.toml` and `__all__` | to see what is reusable before writing it again |
 
 A page that cannot reach the bucket says so with the first line of the error and points to

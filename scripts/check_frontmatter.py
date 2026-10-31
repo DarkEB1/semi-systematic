@@ -20,7 +20,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = ("id", "type", "title", "date", "authors", "owner")
-OPTIONAL = ("status", "tags", "datasets", "related", "private", "project")
+OPTIONAL = ("status", "tags", "datasets", "related", "private", "project", "due")
 TYPES = {
     "context",
     "decision",
@@ -30,6 +30,7 @@ TYPES = {
     "agent-log",
     "dataset",
     "project",
+    "todo",
 }
 STATUSES = {
     "draft",
@@ -41,7 +42,10 @@ STATUSES = {
     "deprecated",
     "done",
     "open",
+    "todo",
+    "doing",
 }
+TODO_STATUSES = ("todo", "doing", "done")
 TAGS_FILE = ROOT / "knowledge" / "context" / "tags.md"
 TEAM_FILE = ROOT / "knowledge" / "context" / "team.yaml"
 FM_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n?(.*)\Z", re.S)
@@ -125,6 +129,24 @@ def check_values(rel: str, fm: dict, tags: dict[str, str], handles: list[str]) -
     return errs
 
 
+def check_todo(rel: str, fm: dict) -> list[str]:
+    """A todo is a card: its status is a column and its due date, if any, is ISO."""
+    if fm.get("type") != "todo":
+        return []
+    errs = []
+    if fm.get("status") not in TODO_STATUSES:
+        errs.append(
+            f"{rel}: a todo's status is one of {list(TODO_STATUSES)}, got {fm.get('status')!r}"
+        )
+    due = fm.get("due")
+    if due is not None and not isinstance(due, dt.date):
+        try:
+            dt.date.fromisoformat(str(due))
+        except ValueError:
+            errs.append(f"{rel}: due {due!r} is not ISO YYYY-MM-DD")
+    return errs
+
+
 def check_body(rel: str, typ: object, body: str) -> list[str]:
     """One title; meetings keep their Decisions grammar."""
     h1 = [ln for ln in body.splitlines() if re.match(r"^# ", ln)]
@@ -144,6 +166,7 @@ def check_file(path: Path, tags: dict[str, str], handles: list[str]) -> list[str
     return (
         check_keys(rel, path, fm)
         + check_values(rel, fm, tags, handles)
+        + check_todo(rel, fm)
         + check_body(rel, fm.get("type"), body)
     )
 
