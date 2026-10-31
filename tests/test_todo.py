@@ -38,6 +38,10 @@ def test_slug_and_argument_validation():
         todo.slugify("Decide the EM rates / credit instruments!")
         == "decide-the-em-rates-credit-instruments"
     )
+    assert (
+        todo.slugify("Build the backtesting framework (tools/backtest)")
+        == "build-the-backtesting-framework-tools"
+    )
     assert todo.main(["", "--dry-run"]) == 2
     assert todo.main(["x", "--due", "next week", "--dry-run"]) == 2
     assert todo.main(["Decide EM rates", "--owner", "DarkEB1", "--dry-run"]) == 0

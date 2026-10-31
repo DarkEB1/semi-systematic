@@ -38,7 +38,9 @@ def default_owner() -> str:
 
 def slugify(title: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
-    return slug[:40].rstrip("-")
+    if len(slug) > 40:  # cut at a word boundary
+        slug = slug[:41].rsplit("-", 1)[0]
+    return slug.rstrip("-")
 
 
 def todo_text(
@@ -58,9 +60,7 @@ def todo_text(
         *([f"project: {project}"] if project else []),
         "related: []",
     ]
-    return (
-        "---\n" + "\n".join(head) + f"\n---\n\n# {title}\n\n## Done when\n\n_TODO_\n\n## Notes\n\n"
-    )
+    return "---\n" + "\n".join(head) + f"\n---\n\n# {title}\n\n## Done when\n\n_TODO_\n\n## Notes\n"
 
 
 def read(path: Path) -> dict:
