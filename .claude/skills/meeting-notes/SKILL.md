@@ -5,7 +5,7 @@ description: Turn a pasted transcript or bullet list into a meeting file in temp
 
 # meeting-notes
 
-Deterministic part: `.claude/skills/meeting-notes/run.py`, exposed as `just meeting DATE TITLE`.
+Deterministic part: `.claude/skills/meeting-notes/meeting_notes.py`, exposed as `just meeting DATE TITLE`.
 It takes bullets on stdin (or `--input file`), writes the meeting file and ADR drafts, and never
 stores the transcript. Your job is to turn a transcript into those bullets and to review the ADR
 test's verdicts. Eval fixture: `ai/evals/meeting-notes/`.

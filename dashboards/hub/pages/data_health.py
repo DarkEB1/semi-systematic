@@ -4,6 +4,7 @@ Same logic as `just data-health` (quant.datahealth); nothing is cached here."""
 from __future__ import annotations
 
 from dataclasses import asdict
+from typing import Any
 
 
 def rows() -> list[dict]:
@@ -12,7 +13,7 @@ def rows() -> list[dict]:
     return [asdict(h) for h in datahealth.report()]
 
 
-def render(mo, filters: dict):
+def render(mo: Any, filters: dict) -> Any:
     try:
         data = rows()
     except Exception as e:  # noqa: BLE001 - show the reason instead of a traceback

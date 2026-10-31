@@ -183,6 +183,42 @@ def workflow_patch(source: str) -> tuple[str, str]:
     return text, new
 
 
+def print_plan(files: dict[str, str], appends: dict[str, str], patches: dict) -> None:
+    for rel, text in files.items():
+        print(f"--- {rel}")
+        print(text, end="")
+    for rel, text in appends.items():
+        print(f"--- append to {rel}")
+        print(text, end="")
+    for rel, (old, new) in patches.items():
+        if old != new:
+            print(f"--- patch {rel}")
+            for ln in new.splitlines():
+                if ln not in old.splitlines():
+                    print(f"+ {ln}")
+
+
+def apply_plan(files: dict[str, str], appends: dict[str, str], patches: dict, *, view: str) -> None:
+    for rel, text in files.items():
+        path = ROOT / rel
+        if path.exists():
+            print(f"exists, not overwritten: {rel}", file=sys.stderr)
+            continue
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        print(rel)
+    for rel, text in appends.items():
+        path = ROOT / rel
+        if view not in path.read_text(encoding="utf-8"):
+            with path.open("a", encoding="utf-8") as f:
+                f.write(text)
+            print(f"{rel} (view appended)")
+    for rel, (old, new) in patches.items():
+        if old != new:
+            (ROOT / rel).write_text(new, encoding="utf-8")
+            print(f"{rel} (patched)")
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="just scaffold-source")
     p.add_argument("source", help="python identifier, e.g. fred")
@@ -215,38 +251,9 @@ def main(argv: list[str] | None = None) -> int:
     }
 
     if a.dry_run:
-        for rel, text in files.items():
-            print(f"--- {rel}")
-            print(text, end="")
-        for rel, text in appends.items():
-            print(f"--- append to {rel}")
-            print(text, end="")
-        for rel, (old, new) in patches.items():
-            if old != new:
-                print(f"--- patch {rel}")
-                for ln in new.splitlines():
-                    if ln not in old.splitlines():
-                        print(f"+ {ln}")
+        print_plan(files, appends, patches)
         return 0
-
-    for rel, text in files.items():
-        path = ROOT / rel
-        if path.exists():
-            print(f"exists, not overwritten: {rel}", file=sys.stderr)
-            continue
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-        print(rel)
-    for rel, text in appends.items():
-        path = ROOT / rel
-        if f"VIEW {a.source}_{dataset} " not in path.read_text(encoding="utf-8"):
-            with path.open("a", encoding="utf-8") as f:
-                f.write(text)
-            print(f"{rel} (view appended)")
-    for rel, (old, new) in patches.items():
-        if old != new:
-            (ROOT / rel).write_text(new, encoding="utf-8")
-            print(f"{rel} (patched)")
+    apply_plan(files, appends, patches, view=f"VIEW {a.source}_{dataset} ")
     print(
         f"next: fill fetch/normalise in src/quant/ingest/{a.source}.py, the Schema table in catalog/datasets/{dataset}.md, then `just test` and `just ingest {a.source} --dry-run`"
     )

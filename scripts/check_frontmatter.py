@@ -77,15 +77,13 @@ def split(md: str) -> tuple[dict | None, str]:
     return (fm if isinstance(fm, dict) else None), m.group(2)
 
 
-def check_file(path: Path, tags: dict[str, str], handles: list[str]) -> list[str]:
-    rel = path.relative_to(ROOT).as_posix()
-    errs: list[str] = []
-    fm, body = split(path.read_text(encoding="utf-8"))
-    if fm is None:
-        return [f"{rel}: no YAML frontmatter"]
-    for k in REQUIRED:
-        if k not in fm or fm[k] in (None, "", []):
-            errs.append(f"{rel}: missing required key {k!r}")
+def check_keys(rel: str, path: Path, fm: dict) -> list[str]:
+    """Required and unknown keys, id equals the file name, known type."""
+    errs = [
+        f"{rel}: missing required key {k!r}"
+        for k in REQUIRED
+        if k not in fm or fm[k] in (None, "", [])
+    ]
     unknown = set(fm) - set(REQUIRED) - set(OPTIONAL)
     if unknown:
         errs.append(f"{rel}: unknown frontmatter keys {sorted(unknown)}")
@@ -94,20 +92,25 @@ def check_file(path: Path, tags: dict[str, str], handles: list[str]) -> list[str
         errs.append(
             f"{rel}: id {fm.get('id')!r} must equal {expected_id!r} (filename stem, or the folder for a README)"
         )
-    typ = fm.get("type")
-    if typ not in TYPES:
-        errs.append(f"{rel}: unknown type {typ!r} (one of {sorted(TYPES)})")
+    if fm.get("type") not in TYPES:
+        errs.append(f"{rel}: unknown type {fm.get('type')!r} (one of {sorted(TYPES)})")
+    return errs
+
+
+def check_values(rel: str, fm: dict, tags: dict[str, str], handles: list[str]) -> list[str]:
+    """Date, tags, owner, authors, private and status values."""
+    errs: list[str] = []
     date = fm.get("date")
     if not isinstance(date, dt.date):
         try:
             dt.date.fromisoformat(str(date))
         except ValueError:
             errs.append(f"{rel}: date {date!r} is not ISO YYYY-MM-DD")
-    for t in fm.get("tags") or []:
-        if t not in tags:
-            errs.append(
-                f"{rel}: unknown tag {t!r}; add it to knowledge/context/tags.md in the same PR"
-            )
+    errs += [
+        f"{rel}: unknown tag {t!r}; add it to knowledge/context/tags.md in the same PR"
+        for t in fm.get("tags") or []
+        if t not in tags
+    ]
     if handles and fm.get("owner") not in handles:
         errs.append(
             f"{rel}: owner {fm.get('owner')!r} not in knowledge/context/team.yaml handles {handles}"
@@ -115,17 +118,34 @@ def check_file(path: Path, tags: dict[str, str], handles: list[str]) -> list[str
     authors = fm.get("authors")
     if authors is not None and not isinstance(authors, list):
         errs.append(f"{rel}: authors must be a list")
-    if typ == "note" and "private" in fm:
+    if fm.get("type") == "note" and "private" in fm:
         errs.append(f"{rel}: notes may not set 'private' (the note template has no such key)")
     if "status" in fm and fm["status"] not in STATUSES:
         errs.append(f"{rel}: status {fm['status']!r} not in {sorted(STATUSES)}")
-    # body rules
+    return errs
+
+
+def check_body(rel: str, typ: object, body: str) -> list[str]:
+    """One title; meetings keep their Decisions grammar."""
     h1 = [ln for ln in body.splitlines() if re.match(r"^# ", ln)]
-    if len(h1) != 1:
-        errs.append(f"{rel}: body must have exactly one '# ' title (found {len(h1)})")
+    errs = (
+        [] if len(h1) == 1 else [f"{rel}: body must have exactly one '# ' title (found {len(h1)})"]
+    )
     if typ == "meeting":
         errs.extend(check_meeting_decisions(rel, body))
     return errs
+
+
+def check_file(path: Path, tags: dict[str, str], handles: list[str]) -> list[str]:
+    rel = path.relative_to(ROOT).as_posix()
+    fm, body = split(path.read_text(encoding="utf-8"))
+    if fm is None:
+        return [f"{rel}: no YAML frontmatter"]
+    return (
+        check_keys(rel, path, fm)
+        + check_values(rel, fm, tags, handles)
+        + check_body(rel, fm.get("type"), body)
+    )
 
 
 def check_meeting_decisions(rel: str, body: str) -> list[str]:
@@ -153,7 +173,7 @@ def target_files(args: list[str]) -> list[Path]:
         + list((ROOT / "catalog" / "datasets").glob("*.md"))
         + list((ROOT / "research").glob("*/README.md"))
     )
-    skip = {ROOT / "knowledge" / "INDEX.md"}
+    skip = {ROOT / "knowledge" / "INDEX.md", ROOT / "knowledge" / "AGENTS.md"}
     return [
         f
         for f in sorted(files)

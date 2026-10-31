@@ -77,9 +77,9 @@ before scaffolding (fixed, not to be reopened) and the ones made during it.
 - The devcontainer keeps the virtualenv and uv cache in named Docker volumes (not host mounts) so
   bind-mounted workspaces on Windows and macOS stay fast. Tool binaries are version-pinned in the
   Dockerfile; apt packages are pinned only through the base image tag.
-- Evals compare each skill's `run.py --dry-run` stdout (dates and owners passed explicitly) with a
+- Evals compare each skill's runner `--dry-run` stdout (dates and owners passed explicitly) with a
   golden `expected.txt`; `just eval --update` refreshes goldens in a reviewed PR.
-- The loop runner executes a skill's deterministic `run.py` by default; a model-driven loop sets
+- The loop runner executes a skill's deterministic runner by default; a model-driven loop sets
   `command:` in the task YAML and inherits the same budget and path checks.
 - The nightly ingest runs at 01:30 UTC Tuesday to Saturday; data-health counts business days with
   a one-day lag.

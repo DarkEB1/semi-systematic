@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pages import ROOT, frontmatter
 
 LOGS = ROOT / "knowledge" / "agent-log"
@@ -24,7 +26,7 @@ def rows() -> list[dict]:
     return sorted(out, key=lambda r: (r["date"], r["title"]), reverse=True)
 
 
-def render(mo, filters: dict):
+def render(mo: Any, filters: dict) -> Any:
     data = rows()
     if not data:
         return mo.md(

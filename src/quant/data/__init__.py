@@ -1,6 +1,6 @@
 """Data layer: one DuckDB connection, one write path, one set of prefix rules.
 
-Bucket prefix rules (the same text lives in AGENTS.md; change both together):
+Bucket prefix rules (the same text lives in src/quant/AGENTS.md; change both together):
 
 - ``raw/``                 written only by ingest.yml (``QUANT_ROLE=ingest``). A partition may be
                            overwritten in place, and only here is ``overwrite=True`` accepted.
@@ -9,19 +9,18 @@ Bucket prefix rules (the same text lives in AGENTS.md; change both together):
 - ``scratch/<handle>/``    the only prefix a person or an agent writes, from a laptop or a sandbox
                            (``QUANT_ROLE`` unset). ``<handle>`` is ``R2_HANDLE``.
 
-Partitioning:
+Partitioning (``quant.data.keys``):
 
 - daily datasets           ``<dataset>/year=YYYY/month=MM/data.parquet``
 - intraday datasets        ``<dataset>/date=YYYY-MM-DD/<asset_class>.parquet`` (one file per day per asset class)
 - curated snapshots        ``<dataset>/snapshot=YYYY-MM-DD/data.parquet``
 
-Raw is stored as received (no schema contract). Catalog views are named ``<source>_<dataset>``
-for raw and plain ``<dataset>`` for curated.
+Raw is stored as received (no schema contract, ``quant.data.schema``). Catalog views are named
+``<source>_<dataset>`` for raw and plain ``<dataset>`` for curated.
 """
 
 from __future__ import annotations
 
-import datetime as dt
 import io
 import os
 import re
@@ -35,38 +34,41 @@ import pyarrow.parquet as pq
 import yaml
 from dotenv import load_dotenv
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-CATALOG_SQL = REPO_ROOT / "catalog" / "catalog.sql"
-DATASET_DOCS = REPO_ROOT / "catalog" / "datasets"
+from quant.data._paths import CATALOG_SQL, DATASET_DOCS, REPO_ROOT
+from quant.data.keys import partition_key, partition_parts
+from quant.data.schema import SchemaMismatch, schema_from_readme, validate_schema
+
+__all__ = [
+    "CATALOG_SQL",
+    "CURATED",
+    "DATASET_DOCS",
+    "RAW",
+    "REPO_ROOT",
+    "SCRATCH",
+    "ExistsError",
+    "PrefixError",
+    "SchemaMismatch",
+    "Settings",
+    "check_write_allowed",
+    "connect",
+    "list_keys",
+    "load",
+    "partition_key",
+    "partition_parts",
+    "put_text",
+    "read_parquet",
+    "s3_client",
+    "schema_from_readme",
+    "settings",
+    "validate_schema",
+    "write_once",
+]
 
 RAW = "raw/"
 CURATED = "curated/"
 SCRATCH = "scratch/"
 
 ROLE_PREFIX = {"ingest": RAW, "promote": CURATED}
-
-_ARROW_TYPES: dict[str, pa.DataType] = {
-    "string": pa.string(),
-    "str": pa.string(),
-    "utf8": pa.string(),
-    "date": pa.date32(),
-    "date32": pa.date32(),
-    "timestamp": pa.timestamp("us"),
-    "timestamp[us]": pa.timestamp("us"),
-    "timestamp[us, utc]": pa.timestamp("us", tz="UTC"),
-    "timestamp[utc]": pa.timestamp("us", tz="UTC"),
-    "timestamp[ms]": pa.timestamp("ms"),
-    "timestamp[ns]": pa.timestamp("ns"),
-    "float64": pa.float64(),
-    "double": pa.float64(),
-    "float32": pa.float32(),
-    "float": pa.float64(),
-    "int64": pa.int64(),
-    "int32": pa.int32(),
-    "int": pa.int64(),
-    "bool": pa.bool_(),
-    "boolean": pa.bool_(),
-}
 
 
 class PrefixError(PermissionError):
@@ -75,10 +77,6 @@ class PrefixError(PermissionError):
 
 class ExistsError(FileExistsError):
     """Raised when a write would overwrite an existing object without permission."""
-
-
-class SchemaMismatch(ValueError):
-    """Raised when a Parquet file does not match the README schema of a curated dataset."""
 
 
 # --------------------------------------------------------------------------- settings
@@ -146,39 +144,6 @@ def s3_client(*, write: bool = False) -> Any:
         region_name="auto",
         config=Config(signature_version="s3v4", retries={"max_attempts": 3}),
     )
-
-
-# --------------------------------------------------------------------------- keys
-
-
-def partition_key(dataset: str, **parts: Any) -> str:
-    """Hive-style partition directory, e.g. ``partition_key("prices_daily", year=2026, month=10)``
-    -> ``prices_daily/year=2026/month=10``. Values are formatted as given; pass ``month="10"``
-    or an int, both become ``month=10``; ``month=3`` becomes ``month=03``."""
-    segs = [dataset.strip("/")]
-    for k, v in parts.items():
-        if k == "month" and isinstance(v, int):
-            v = f"{v:02d}"
-        segs.append(f"{k}={v}")
-    return "/".join(segs)
-
-
-def partition_parts(
-    cadence: str, day: dt.date, *, asset_class: str | None = None
-) -> tuple[dict[str, Any], str]:
-    """Partition parts and file name for a cadence: daily -> year/month, intraday -> date,
-    snapshot -> snapshot."""
-    if cadence == "daily":
-        return {"year": day.year, "month": day.month}, "data.parquet"
-    if cadence == "intraday":
-        if not asset_class:
-            raise ValueError(
-                "intraday partitions need an asset_class (one file per day per asset class)"
-            )
-        return {"date": day.isoformat()}, f"{asset_class}.parquet"
-    if cadence == "snapshot":
-        return {"snapshot": day.isoformat()}, "data.parquet"
-    raise ValueError(f"unknown cadence {cadence!r} (daily, intraday, snapshot)")
 
 
 # --------------------------------------------------------------------------- writes
@@ -292,69 +257,6 @@ def read_parquet(key: str, *, client: Any = None, cfg: Settings | None = None) -
     return pq.read_table(io.BytesIO(body))
 
 
-# --------------------------------------------------------------------------- schema contract
-
-
-def _schema_table(md: str) -> list[dict[str, str]]:
-    """Rows of the markdown table under the ``## Schema`` heading."""
-    m = re.search(r"^## Schema\s*$(.*?)(?=^## |\Z)", md, flags=re.M | re.S)
-    if not m:
-        raise SchemaMismatch("README has no '## Schema' section")
-    rows = [ln.strip() for ln in m.group(1).splitlines() if ln.strip().startswith("|")]
-    if len(rows) < 2:
-        raise SchemaMismatch("Schema section has no table")
-    header = [c.strip().lower() for c in rows[0].strip("|").split("|")]
-    out = []
-    for ln in rows[2:]:  # skip header and separator
-        cells = [c.strip() for c in ln.strip("|").split("|")]
-        if len(cells) != len(header):
-            continue
-        out.append(dict(zip(header, cells, strict=True)))
-    return out
-
-
-def schema_from_readme(name: str) -> pa.Schema:
-    """Parse the Schema table of ``catalog/datasets/<name>.md`` into a pyarrow schema.
-
-    The table needs ``column`` and ``type`` headers (``units`` and ``description`` are kept as
-    field metadata). Types: string, date, timestamp, float64, float32, int64, int32, bool.
-    """
-    path = DATASET_DOCS / f"{name}.md"
-    if not path.exists():
-        raise FileNotFoundError(f"no dataset README at {path.relative_to(REPO_ROOT)}")
-    fields = []
-    for row in _schema_table(path.read_text(encoding="utf-8")):
-        col = row.get("column", "").strip("`")
-        typ = row.get("type", "").strip("`").lower()
-        if typ not in _ARROW_TYPES:
-            raise SchemaMismatch(f"{name}: unknown type {typ!r} for column {col!r}")
-        meta = {k: v for k, v in row.items() if k not in {"column", "type"} and v}
-        fields.append(pa.field(col, _ARROW_TYPES[typ], nullable=True, metadata=meta or None))
-    if not fields:
-        raise SchemaMismatch(f"{name}: empty schema table")
-    return pa.schema(fields)
-
-
-def validate_schema(table: pa.Table, name: str) -> None:
-    """Raise ``SchemaMismatch`` unless the table's columns and types equal the README schema."""
-    expected = schema_from_readme(name)
-    got = table.schema
-    problems = []
-    exp_names = expected.names
-    got_names = got.names
-    if sorted(exp_names) != sorted(got_names):
-        missing = sorted(set(exp_names) - set(got_names))
-        extra = sorted(set(got_names) - set(exp_names))
-        problems.append(f"columns differ: missing={missing} extra={extra}")
-    for f in expected:
-        if f.name in got_names and got.field(f.name).type != f.type:
-            problems.append(f"{f.name}: expected {f.type}, got {got.field(f.name).type}")
-    if problems:
-        raise SchemaMismatch(
-            f"{name} does not match catalog/datasets/{name}.md: " + "; ".join(problems)
-        )
-
-
 # --------------------------------------------------------------------------- duckdb
 
 
@@ -405,12 +307,15 @@ def load(config: str | os.PathLike[str] | dict[str, Any]) -> dict[str, pa.Table]
     ``datasets:`` is a list of ``{name: prices_daily, snapshot: 2026-10-29}``. Each is read from
     ``curated/<name>/snapshot=<snapshot>/``; a missing snapshot is an error, never silently the latest.
     """
-    if not isinstance(config, dict):
-        config = yaml.safe_load(Path(config).read_text(encoding="utf-8"))
+    cfg: dict[str, Any] = (
+        config
+        if isinstance(config, dict)
+        else yaml.safe_load(Path(config).read_text(encoding="utf-8"))
+    )
     s = settings()
     con = connect(views=False)
     out: dict[str, pa.Table] = {}
-    for item in config.get("datasets", []) or []:
+    for item in cfg.get("datasets", []) or []:
         name, snap = item["name"], str(item["snapshot"])
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", snap):
             raise ValueError(f"{name}: snapshot must be YYYY-MM-DD, got {snap!r}")

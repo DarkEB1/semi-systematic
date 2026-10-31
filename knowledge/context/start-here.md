@@ -20,7 +20,7 @@ interface is `just` (run `just` alone to list the recipes).
 ## Reading order
 
 1. This page.
-2. [AGENTS.md](../../AGENTS.md): the map, the nine rules, the skills and the `just` interface. Short by design (under 150 lines).
+2. [AGENTS.md](../../AGENTS.md): how to work, how to verify, the nine rules, autonomy. Short by design; the per-folder `AGENTS.md` files hold the rest and load when you work there.
 3. [workflow](workflow.md): the story of a researcher's week and of an agent loop.
 4. [walkthrough](walkthrough.md): the same week as real commands with their real output.
 5. [data-access](data-access.md): how to read and write data from a notebook or a script.
@@ -32,7 +32,7 @@ interface is `just` (run `just` alone to list the recipes).
 
 ```text
 semi-systematic/
-├── AGENTS.md                 rules + map (read second)
+├── AGENTS.md                 the rules (read second); research/, knowledge/, src/quant/, tools/ carry their own
 ├── README.md                 what this is, setup by hand, setup with an assistant
 ├── CONTRIBUTING.md           branches, PRs, CI, changing conventions
 ├── justfile                  the only interface: just <recipe>
@@ -59,10 +59,14 @@ semi-systematic/
 │   ├── brain/                retrieval index (`just index`, `just search`)
 │   └── backtest/             reserved for the first reusable backtest loop; `just new-tool` adds more
 ├── dashboards/hub/           one marimo hub, five pages (`just dashboard`, port 2718)
-├── .claude/skills/<name>/    SKILL.md (the recipe an agent follows) + run.py (its deterministic part)
+├── .claude/
+│   ├── settings.json         Claude Code team settings: deny rules, hooks (the zero-exception rules)
+│   ├── agents/reviewer.md    read-only reviewer subagent; checks a PR against its spec before a merge
+│   └── skills/<name>/        SKILL.md (the recipe an agent follows) + <name>.py (its deterministic part)
 ├── ai/                       prompts/ (paste-ready), evals/ (goldens), tasks/ (budgeted loops), models.yaml
 ├── promote/requests/         YAML requests that promote.yml executes on merge
 ├── scripts/                  checkers and runners behind the just recipes
+│   └── hooks/                stdlib python that Claude Code runs around tool calls (wired in .claude/settings.json)
 └── .github/                  CODEOWNERS, Dependabot, seven pinned workflows
 ```
 

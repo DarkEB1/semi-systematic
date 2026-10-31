@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Deterministic part of the repo-structure skill (`just where THING`).
 
-run.py "ingest module"     explain where a new thing goes and which skill/recipe creates it
-run.py --check             verify the convention files agree with each other:
+repo_structure.py "ingest module"   explain where a new thing goes and which skill/recipe creates it
+repo_structure.py --check           verify the convention files agree with each other:
                            templates exist per type, every SKILL.md has the four sections and
-                           names only just recipes that exist, every skill has run.py + eval,
+                           names only just recipes that exist, every skill has its runner + eval,
                            AGENTS.md lists every skill, team.yaml handles have notes dirs.
 """
 
@@ -121,7 +121,7 @@ MAP: list[tuple[tuple[str, ...], str, str, str]] = [
     ),
     (
         ("skill", "routine", "automation"),
-        ".claude/skills/<name>/{SKILL.md, run.py} + ai/evals/<name>/{input.yaml, expected.txt}",
+        ".claude/skills/<name>/{SKILL.md, <name_with_underscores>.py} + ai/evals/<name>/{input.yaml, expected.txt}",
         "SKILL.md has Inputs, Steps, Checks before opening the PR, Done when, and names only just recipes that exist",
         "repo-structure skill updates templates, check_frontmatter.py, AGENTS.md and the skill together",
     ),
@@ -161,6 +161,24 @@ MAP: list[tuple[tuple[str, ...], str, str, str]] = [
         "under 1 MB each",
         "commit; `just check` enforces the cap",
     ),
+    (
+        ("hook", "deny", "permission", "guard"),
+        "scripts/hooks/<name>.py (stdlib python, exit 2 blocks) wired in .claude/settings.json; a deny rule for a tool pattern",
+        "only zero-exception rules are enforced; everything else is Claude's judgement in auto mode, never a prompt to a person",
+        "add the script, a test in tests/test_hooks.py and the settings entry in one PR (ADR-0005)",
+    ),
+    (
+        ("subagent", "agent", "reviewer", "review"),
+        ".claude/agents/<name>.md (frontmatter: tools, disallowedTools, effort, maxTurns)",
+        "a subagent that judges never edits; the reviewer ends with `verdict: merge` or `verdict: hold`",
+        "add the file; mention it in knowledge/context/working-with-agents.md",
+    ),
+    (
+        ("agents.md", "rules", "instructions", "claude.md"),
+        "AGENTS.md (root router, under 100 lines) or <folder>/AGENTS.md for rules that only matter there",
+        "only what the repo cannot tell an agent by itself; no CLAUDE.md (ADR-0005)",
+        "edit; `/doctor prompt-audit` finds stale lines",
+    ),
 ]
 
 
@@ -172,7 +190,7 @@ def where(thing: str) -> str:
         if score:
             scored.append((score, i, loc, rule, how))
     if not scored:
-        return f'No rule matches "{thing}". Closest places: knowledge/notes/<handle>/ for a thought, research/experiments/ for anything with data, src/quant/ for library code. Ask again with a noun from AGENTS.md\'s map.'
+        return f'No rule matches "{thing}". Closest places: knowledge/notes/<handle>/ for a thought, research/<project>/experiments/ for anything with data, src/quant/ for library code. Ask again with a noun from AGENTS.md\'s map.'
     scored.sort(key=lambda s: (-s[0], s[1]))
     out = [f'"{thing}" goes to:']
     for _, _, loc, rule, how in scored[:2]:
@@ -180,53 +198,73 @@ def where(thing: str) -> str:
     return "\n".join(out).rstrip()
 
 
-def check() -> list[str]:
-    errs: list[str] = []
-    sys.path.insert(0, str(ROOT / "scripts"))
-    from check_frontmatter import TYPES  # noqa: PLC0415
-
-    for t in sorted(TYPES):
-        if not (ROOT / "knowledge" / "templates" / f"{t}.md").exists():
-            errs.append(f"no template for type {t!r} in knowledge/templates/")
-    recipes = set(
+def _recipes() -> set[str]:
+    return set(
         re.findall(
             r"^([a-z][a-z0-9-]*)(?:\s+[A-Z*][^:]*)?:\s*$",
             (ROOT / "justfile").read_text(encoding="utf-8"),
             flags=re.M,
         )
     )
-    agents = (
-        (ROOT / "AGENTS.md").read_text(encoding="utf-8") if (ROOT / "AGENTS.md").exists() else ""
-    )
-    for sdir in sorted(d for d in SKILLS.iterdir() if d.is_dir()):
-        md = sdir / "SKILL.md"
-        if not md.exists():
-            errs.append(f"{sdir.name}: missing SKILL.md")
-            continue
-        text = md.read_text(encoding="utf-8")
-        for s in SECTIONS:
-            if s not in text:
-                errs.append(f"{sdir.name}: SKILL.md lacks {s!r}")
-        for r in set(re.findall(r"`just ([a-z][a-z0-9-]*)", text)):
-            if r not in recipes:
-                errs.append(f"{sdir.name}: SKILL.md names `just {r}` which is not a recipe")
-        if not (sdir / "run.py").exists():
-            errs.append(f"{sdir.name}: missing run.py")
-        if not (ROOT / "ai" / "evals" / sdir.name / "input.yaml").exists():
-            errs.append(f"{sdir.name}: missing ai/evals/{sdir.name}/input.yaml")
-        if agents and sdir.name not in agents:
-            errs.append(f"{sdir.name}: not listed in AGENTS.md")
+
+
+def check_templates() -> list[str]:
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from check_frontmatter import TYPES  # noqa: PLC0415
+
+    return [
+        f"no template for type {t!r} in knowledge/templates/"
+        for t in sorted(TYPES)
+        if not (ROOT / "knowledge" / "templates" / f"{t}.md").exists()
+    ]
+
+
+def check_skill(sdir: Path, recipes: set[str], agents: str) -> list[str]:
+    md = sdir / "SKILL.md"
+    if not md.exists():
+        return [f"{sdir.name}: missing SKILL.md"]
+    text = md.read_text(encoding="utf-8")
+    errs = [f"{sdir.name}: SKILL.md lacks {s!r}" for s in SECTIONS if s not in text]
+    errs += [
+        f"{sdir.name}: SKILL.md names `just {r}` which is not a recipe"
+        for r in set(re.findall(r"`just ([a-z][a-z0-9-]*)", text))
+        if r not in recipes
+    ]
+    runner = sdir / (sdir.name.replace("-", "_") + ".py")
+    if not runner.exists():
+        errs.append(f"{sdir.name}: missing runner {runner.name}")
+    if not (ROOT / "ai" / "evals" / sdir.name / "input.yaml").exists():
+        errs.append(f"{sdir.name}: missing ai/evals/{sdir.name}/input.yaml")
+    if agents and sdir.name not in agents:
+        errs.append(f"{sdir.name}: not listed in AGENTS.md")
+    return errs
+
+
+def check_team() -> list[str]:
     team = (
         yaml.safe_load((ROOT / "knowledge" / "context" / "team.yaml").read_text(encoding="utf-8"))
         or {}
     )
+    co = ROOT / ".github" / "CODEOWNERS"
+    owners = co.read_text(encoding="utf-8") if co.exists() else None
+    errs = []
     for h in team.get("handles", []):
         if not (ROOT / "knowledge" / "notes" / h).is_dir():
             errs.append(f"handle {h}: no knowledge/notes/{h}/ directory")
-        co = ROOT / ".github" / "CODEOWNERS"
-        if co.exists() and f"@{h}" not in co.read_text(encoding="utf-8"):
+        if owners is not None and f"@{h}" not in owners:
             errs.append(f"handle {h}: not in CODEOWNERS")
     return errs
+
+
+def check() -> list[str]:
+    agents = (
+        (ROOT / "AGENTS.md").read_text(encoding="utf-8") if (ROOT / "AGENTS.md").exists() else ""
+    )
+    recipes = _recipes()
+    errs = check_templates()
+    for sdir in sorted(d for d in SKILLS.iterdir() if d.is_dir()):
+        errs += check_skill(sdir, recipes, agents)
+    return errs + check_team()
 
 
 def main(argv: list[str] | None = None) -> int:

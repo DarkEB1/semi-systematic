@@ -1,92 +1,80 @@
 # AGENTS.md
 
-How to work in `semi-systematic`, for people and agents alike. Everything runs inside the
-devcontainer through `just` recipes (run `just` to list them). This file is the rules; the guides
-are `knowledge/context/start-here.md` (read first), `workflow.md` (the story), `walkthrough.md`
-(real commands and output), `data-access.md`, `working-with-agents.md` and `CONTRIBUTING.md`.
-Paste-ready prompts for assistants other than Claude Code: `ai/prompts/<skill>.md`.
+Rules for working in `semi-systematic`, for people and agents. Everything runs inside the
+devcontainer through `just` recipes; `just` lists them. This file holds only what the repo cannot
+tell you by itself. Per-folder rules live next to the code as `research/AGENTS.md`,
+`knowledge/AGENTS.md`, `src/quant/AGENTS.md` and `tools/AGENTS.md`; the guides are listed at the end.
 
-## Map: six areas
+## How to work
 
-| area | where | what |
-|---|---|---|
-| 1. context | `knowledge/` (`context/`, `decisions/`, `meetings/`, `notes/<handle>/`, `research-log/`, `agent-log/`, `templates/`, `INDEX.md`) | the team's memory as plain text with frontmatter; opens as an Obsidian vault |
-| 2. research | `research/<project>/` (README + `experiments/<date>-<slug>/`) | a project is a folder and an isolated unit; experiments (config.yaml, marimo run.py, results.md, figures/) live inside one; code reused by 2+ experiments becomes a tool |
-| 3. dashboards | `dashboards/hub/` | one marimo hub: experiments, data-health, knowledge, agent-log, tools; reads everything, imported by nothing |
-| 4. tools | `tools/<name>/` (`brain` retrieval index, `backtest` reserved) | isolated packages: src layout, own pyproject, declared deps only, no knowledge of the repo; contract `tools/README.md`; `just new-tool NAME` |
-| 5. AI meta | `ai/prompts/`, `ai/evals/<skill>/`, `ai/tasks/<slug>.yaml`, `ai/models.yaml`; skills in `.claude/skills/` | prompts, golden evals, budgeted tasks, model names |
-| 6. other | `src/quant/` (library), `tests/`, `catalog/` (views, dataset READMEs, reference CSVs), `promote/requests/`, `scripts/`, `assets/` | the data layer and plumbing |
+1. **Think before coding.** State your assumptions. When a request has two readings, name both and
+   take the one that needs less code, or ask.
+2. **Least code.** No feature, option, abstraction or error path nobody asked for. Code leaves an
+   experiment for a tool only on its second use.
+3. **Surgical changes.** Touch only the paths the task needs, match the surrounding style, and
+   mention dead code instead of deleting it.
+4. **Goal-driven.** Turn the task into a check before starting (a test, a golden eval, the frozen
+   check) and show that check's output when you say it is done.
+
+## Verify
+
+- Everything: `just check` then `just test`. CI runs both plus `just eval`. Nothing is done until all
+  three are green and their result lines are in the message or the PR.
+- One test: `uv run pytest tests/test_new_project.py -q`. One skill's golden: `just eval new-experiment`.
+  `just eval --update` only after reading the diff it would write.
+- Where you are: `just onboard`. A `MISSING` line, or no `just`, means you are not in the container. Stop.
+- Search first: `just search "<topic>"` in two or three phrasings. `just where "<thing>"` says where a
+  new thing goes and which recipe creates it.
 
 ## The nine rules
 
-1. **Run `just test` before claiming anything works.** `just check` too; CI runs both plus `just eval`.
-2. **Never write `raw/` or `curated/`.** `raw/` is written only by `ingest.yml` (may overwrite a
-   partition in place); `curated/` only by `promote.yml` (append-only, schema contract). People and
-   agents write `scratch/<handle>/` only; `quant.data.write_once` refuses anything else.
-3. **Every experiment ends in a research-log entry** (`just experiment <slug> --finish` drafts it;
-   numbers come from `outputs/` only). `status: final` freezes the folder.
-4. **Decisions are ADRs by the ADR test**: a decision becomes an ADR when it changes a convention,
-   a dependency, a data source, a method others will reuse, or costs money; otherwise it is a
-   minutes line marked `(minor)`. A changed decision is a new ADR with `status: superseded` on the old one.
-5. **Knowledge files use the templates and pass `just check`**: frontmatter `id` (= filename),
-   `type`, `title`, `date`, `authors`, `owner` (in `knowledge/context/team.yaml`); optional
-   `status`, `tags` (from `knowledge/context/tags.md`), `datasets`, `related`, `private` (never on notes).
-   One `#` title, `##` sections under ~400 words, relative links, ISO dates.
+1. **`just test` and `just check` before claiming anything works.**
+2. **Never write `raw/` or `curated/`.** `ingest.yml` writes raw, `promote.yml` writes curated. You
+   write `scratch/<handle>/`, and `quant.data.write_once` refuses the rest.
+3. **Every experiment ends in a research-log entry**, drafted by `just experiment <slug> --finish`
+   from `outputs/` only. `status: final` in `results.md` freezes the folder.
+4. **Decisions pass the ADR test.** A new convention, dependency, data source, reusable method or
+   cost is an ADR; anything else is a `(minor)` minutes line. A changed decision is a new ADR with
+   `status: superseded` on the old one.
+5. **Knowledge files use the templates and pass `just check`.** The keys are in `knowledge/AGENTS.md`.
 6. **Never rename or move a file under `knowledge/`.**
-7. **Every agent task ends with an agent-log entry** (`knowledge/agent-log/`, template
-   `knowledge/templates/agent-log.md`) linking every file it touched and every file it relied on.
-8. **Search before you act**: `just search "<topic>"` for prior decisions, experiments and notes.
-9. **Everything is isolated; it comes together only in the data layer, the dashboard and
-   `knowledge/`.** An experiment, a tool or a skill imports `quant.data` and tools, never another
-   experiment, another unit's internals or the dashboard. Shared code becomes a tool
-   (`just new-tool`); `just check` enforces the import rules (ADR-0003).
-
-## Data layer in one paragraph
-
-`quant.data.connect()` gives a DuckDB connection with every view in `catalog/catalog.sql`
-(`<source>_<dataset>` for raw, plain names for curated, `ref_<name>` for reference CSVs).
-Partitions: daily `year=/month=`, intraday `date=` with one file per asset class, curated
-`snapshot=YYYY-MM-DD`. `quant.data.load(config)` returns only the datasets an experiment names at
-the snapshots it names. The Schema table in `catalog/datasets/<name>.md` is the contract for
-`curated/<name>/`; raw is stored as received. Reuse rule: code moves from an experiment into a
-tool only on second use, with a test, in its own PR; `src/quant/` holds data-layer code only.
-
-## Skills (`.claude/skills/<name>/SKILL.md` + deterministic `run.py`)
-
-| skill | recipe | does |
-|---|---|---|
-| pull-data | `just scaffold-source SOURCE` | new source: module, README, view, test + fixture, registry, workflow entry |
-| refresh-data | `just refresh [--execute]` | expected vs actual partitions; re-ingest gaps; issue for the unrecoverable |
-| promote-dataset | `just promote-request NAME KEY` | validate against the README schema; write the promote request; PR checklist |
-| new-experiment | `just experiment SLUG [--finish]` | scaffold; flag duplicated code; draft results + research-log from outputs |
-| meeting-notes | `just meeting DATE TITLE` | bullets to meeting file; ADR test; ADR drafts; actions; no transcript stored |
-| build-index | `just index`, `just search Q` | rebuild chunks.parquet + INDEX.md; answer "what do we know about X" with paths |
-| repo-structure | `just where THING` | where a new thing goes; keep templates, checker, AGENTS.md and skills in sync |
-
-Every skill: searches first (`just search`), sets `owner` and `tags` on any knowledge file it
-writes (tags from `just tags`; a missing tag is appended to `tags.md` with a definition in the same
-PR), and ends with the agent-log entry. Each skill has a golden eval in `ai/evals/<skill>/` (`just eval`).
+7. **Every agent task ends with an agent-log entry** from `knowledge/templates/agent-log.md`,
+   linking every file it touched and every file it relied on.
+8. **Search before you act.**
+9. **Everything is isolated; units meet only in the data layer, the dashboard and `knowledge/`.**
+   Shared code becomes a tool (`just new-tool`). `just check` enforces the imports (ADR-0003).
 
 ## Autonomy
 
-- A skill may commit, push and **merge its own PR** when CI is green and **no changed path is
-  under the data-layer CODEOWNERS block** (`src/quant/data/**`, `catalog/**`, `promote/**`,
-  `.github/**`). Otherwise it opens the PR and stops.
-- Loops need a budget: `just task SLUG` writes `ai/tasks/<slug>.yaml` (goal, metric,
-  `max_iterations`, `max_hours`, stop conditions, `allowed_paths`); `just loop SLUG` re-invokes the
-  skill until a stop condition or the budget is hit, appending every iteration to one agent-log
-  entry. The runner refuses to start without a budget and stops on a write outside `allowed_paths`.
-- Secrets: `.env` on a laptop (gitignored), repository secrets in CI; `.env.example` lists every
-  variable any recipe reads and `just check` enforces it. Never echo, log or commit a value.
-- No chat notifications; issues and PRs are the only channels.
+- A skill commits, pushes and merges its own PR when CI is green, the `reviewer` subagent
+  (`.claude/agents/reviewer.md`) reports no correctness gap, and no changed path is under the
+  data-layer CODEOWNERS block (`src/quant/data/**`, `catalog/**`, `promote/**`, `.github/**`).
+  Otherwise it opens the PR and stops.
+- Loops need a budget: `just task SLUG`, then `just loop SLUG`. The runner refuses to start without
+  `max_iterations`, `max_hours` and `allowed_paths`, and stops on a write outside them.
+- Permissions are judged by Claude, not by people. Sessions run in auto mode, `.claude/settings.json`
+  denies the few zero-exception actions (reading `.env`, `--no-verify`, force pushes, hand edits to
+  frozen experiments) and the Stop hook asks for evidence. Nothing here waits for a person to click.
+- Secrets: `.env` is gitignored and never read back; `.env.example` lists every variable; CI uses
+  repository secrets. No chat notifications; issues and PRs are the channels.
 
-## The `just` interface
+## Gotchas
 
-`setup` · `onboard` · `check` · `test` · `eval` · `ingest SOURCE [--since D]` · `refresh` ·
-`promote REQUEST` · `promote-request NAME KEY` · `scaffold-source SOURCE` · `data-health` · `audit` ·
-`ls PREFIX` · `backup` · `index` · `index-upload` · `search QUERY` · `embed` · `tags` ·
-`meeting DATE TITLE` · `where THING` · `project SLUG` · `experiment SLUG --project P [--finish]` · `dashboard` · `new-tool NAME` ·
-`task SLUG` · `loop SLUG`
+- Commit inside the container (pre-commit hooks live there). `git push` and `gh` work from the host.
+- `ruff format` also reformats python code blocks inside markdown, and the frontmatter checker counts
+  a `# ` line inside a code fence as a title.
+- Dates are ISO. Owners are handles from `knowledge/context/team.yaml`. Tags come from `just tags`.
+- Skills: `.claude/skills/<name>/SKILL.md` plus a runner `<name_with_underscores>.py`, each with a
+  golden in `ai/evals/<name>/`: new-experiment, pull-data, refresh-data, promote-dataset,
+  meeting-notes, build-index, repo-structure. Prompts for other assistants: `ai/prompts/<skill>.md`.
 
-Scripts, skills and workflows call these recipes, never raw commands. Storage facts (bucket,
-endpoint, tokens, what was decided and why) are in `knowledge/decisions/ADR-0001-initial-setup.md`.
+## Read first
+
+| when you | read |
+|---|---|
+| are new here | `knowledge/context/start-here.md`, then `workflow.md` and `walkthrough.md` |
+| touch data | `knowledge/context/data-access.md`, `src/quant/AGENTS.md`, `knowledge/decisions/ADR-0001-initial-setup.md` |
+| start research | `research/AGENTS.md`, then the project's README |
+| write under `knowledge/` | `knowledge/AGENTS.md`, then the template for the type |
+| build a tool | `tools/AGENTS.md`, then `tools/README.md` |
+| run or review an agent | `knowledge/context/working-with-agents.md`, `CONTRIBUTING.md` |

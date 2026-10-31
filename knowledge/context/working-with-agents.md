@@ -20,7 +20,7 @@ and for the agent who is asked.
 ## The seven skills
 
 A skill is a folder `.claude/skills/<name>/` with two files. `SKILL.md` is the recipe: Inputs,
-Steps, Checks before opening the PR, Done when. `run.py` is the deterministic part, the thing a
+Steps, Checks before opening the PR, Done when. The runner `<name_with_underscores>.py` is the deterministic part, the thing a
 `just` recipe calls, so the boring half of every skill is a program with a golden test in
 `ai/evals/<name>/` and the model only supplies judgement.
 
@@ -44,7 +44,8 @@ as a slash command with the inputs in words, for example
 after a dollar shock", dataset prices_daily at snapshot 2026-10-29
 ```
 
-Claude Code reads `CLAUDE.md` (which says "Read AGENTS.md") and the skill's `SKILL.md`, then
+Claude Code loads `AGENTS.md` at start (there is no `CLAUDE.md`; the per-folder `AGENTS.md` files
+load when it opens a file there) and the skill's `SKILL.md`, then
 follows the Steps. You will see it run `just search`, then `just experiment`, then edit, then
 write the agent-log entry and open the PR.
 
@@ -106,7 +107,7 @@ Edit it before running: raise the budget deliberately, add stop conditions
 (`stdout_contains:<text>` or `file_exists:<path>`), and keep `allowed_paths` as narrow as the
 job. `{slug}` and `{i}` (1-based iteration) are substituted into `args`.
 
-`just loop sweep-lookbacks` then, per iteration: records `git status`, runs the skill's `run.py`
+`just loop sweep-lookbacks` then, per iteration: records `git status`, runs the skill's runner
 with the args, lists the files that changed, stops if any is outside `allowed_paths` (files are
 left in place, nothing reverted), stops on a non-zero exit or a stop condition, and otherwise
 continues until `max_iterations` or `max_hours`. Every iteration is appended to one file,
@@ -132,19 +133,31 @@ Stop reason: **budget: max_iterations reached**.
 none yet. Review the files above, then open a PR with `gh pr create` (the loop never merges).
 ```
 
-**Model-driven loops** use the same file and the same guard rails. Replace the deterministic part
-with a command:
+**Model-driven loops** use the same file and the same guard rails. Give the task a prompt instead
+of runner args, with a turn cap and an optional spend cap per iteration:
 
-```yaml
-command: ["claude", "-p", "/new-experiment {slug}-{i}: next lookback in the sweep; read ai/tasks/{slug}.yaml for the goal and metric"]
+```text
+$ just task sweep-lookbacks --prompt "/new-experiment {slug}-{i}: next lookback in the sweep; read ai/tasks/{slug}.yaml for the goal and metric" \
+    --max-turns 40 --max-usd 5
 ```
 
-The runner executes that instead of `run.py`, with the same budget, path check and agent-log.
-Models the agents may use are named in `ai/models.yaml`; adding a paid one is an ADR.
+Each iteration then runs `claude -p "<prompt>" --permission-mode auto --max-turns 40 --max-budget-usd 5`.
+Auto mode means Claude judges every action itself and nobody is asked to approve anything; the
+deny rules and hooks in `.claude/settings.json` still apply, and a blocked action is denied while
+the run carries on. The same budget, path check and agent-log apply. A `command: [...]` key runs
+any other executable instead. Models the agents may use are named in `ai/models.yaml`; adding a
+paid one is an ADR.
 
 ## Reviewing an agent's work
 
-Open the PR and the agent-log entry side by side. The entry has six sections and each answers a
+The first reviewer is Claude: the `reviewer` subagent in `.claude/agents/reviewer.md` reads the
+diff against the spec it was built from (the research-log entry, the skill's "Done when" list,
+the task YAML or the ADR), checks the non-negotiables and ends with `verdict: merge` or
+`verdict: hold`. It can read and run read-only commands, never edit. Ask for it in words
+("use the reviewer subagent on PR 12 against the research-log entry") or with `@agent-reviewer`;
+a skill runs it before merging its own PR and pastes the verdict into the agent-log entry.
+
+If you want to look yourself, open the PR and the agent-log entry side by side. The entry has six sections and each answers a
 review question:
 
 - **Task**: was it asked what the PR does, by whom, with which skill and budget?
@@ -160,8 +173,12 @@ lists every entry newest first, so a weekly skim is cheap.
 
 ## What an agent may do alone
 
-- Commit, push, and merge its own PR when CI is green and no changed path is under
-  `src/quant/data/**`, `catalog/**`, `promote/**` or `.github/**`. Otherwise it opens the PR and stops.
+- Commit, push, and merge its own PR when CI is green, the reviewer subagent says `verdict: merge`
+  and no changed path is under `src/quant/data/**`, `catalog/**`, `promote/**` or `.github/**`.
+  Otherwise it opens the PR and stops.
+- Decide its own permissions: sessions run in auto mode, so Claude's classifier judges each action
+  and no person is asked. The zero-exception rules are enforced by `.claude/settings.json`
+  (deny rules and hooks), not by prompts.
 - Write data only under `scratch/<handle>/` (in CI, `scratch/ci/`). It cannot write `raw/` or
   `curated/`; the data layer refuses, and the keys on a laptop cannot either.
 - Append a tag to `tags.md` with a definition, in the same PR that first uses it.

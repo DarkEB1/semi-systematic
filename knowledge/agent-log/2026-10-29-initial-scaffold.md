@@ -32,7 +32,7 @@ Cloudflare and GitHub dashboards; the rest ran unattended and ends in the PR
 - gitleaks runs from the pinned binary (local pre-commit hook and `just check`) with
   `.gitleaks.toml` excluding the local `.env`; the official pre-commit hook would download a Go toolchain.
 - Evals compare each skill's `--dry-run` stdout with a golden file, dates and owners passed
-  explicitly; the loop runner executes `run.py` by default and a `command:` for model-driven loops.
+  explicitly; the loop runner executes the skill's runner by default and a `command:` for model-driven loops (since ADR-0005 a `prompt:`).
 - The demo loop task runs new-experiment with `--dry-run` so the verification leaves no stray
   experiment folders; a second, real loop with a too-narrow `allowed_paths` was run to prove the
   path check stops the loop, and its outputs were deleted.
@@ -70,7 +70,7 @@ scans `CONTRIBUTING.md` and `src/`.
 
 ## Files touched
 
-- [AGENTS.md](../../AGENTS.md), [README.md](../../README.md), [CLAUDE.md](../../CLAUDE.md), [justfile](../../justfile), [pyproject.toml](../../pyproject.toml), [.env.example](../../.env.example)
+- [AGENTS.md](../../AGENTS.md), [README.md](../../README.md), `CLAUDE.md` (removed by ADR-0005), [justfile](../../justfile), [pyproject.toml](../../pyproject.toml), [.env.example](../../.env.example)
 - [.devcontainer/Dockerfile](../../.devcontainer/Dockerfile), [.devcontainer/devcontainer.json](../../.devcontainer/devcontainer.json), [.pre-commit-config.yaml](../../.pre-commit-config.yaml), [.gitleaks.toml](../../.gitleaks.toml)
 - [.github/CODEOWNERS](../../.github/CODEOWNERS), [.github/dependabot.yml](../../.github/dependabot.yml), the seven workflows under [.github/workflows](../../.github/workflows/ci.yml)
 - [src/quant/data](../../src/quant/data/__init__.py), [src/quant/ingest](../../src/quant/ingest/__init__.py), [src/quant/promote](../../src/quant/promote/__init__.py), [src/quant/datahealth.py](../../src/quant/datahealth.py), [src/quant/audit.py](../../src/quant/audit.py), [tests](../../tests/test_data.py)

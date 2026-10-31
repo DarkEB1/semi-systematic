@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import tomllib
+from typing import Any
 
 from pages import ROOT
 
@@ -48,7 +49,7 @@ def rows() -> list[dict]:
     return out
 
 
-def render(mo, filters: dict):
+def render(mo: Any, filters: dict) -> Any:
     data = rows()
     if not data:
         return mo.md(

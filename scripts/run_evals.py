@@ -3,7 +3,7 @@
 
 ai/evals/<skill>/input.yaml holds ``args`` (list) and optional ``env`` (dict); ``expected.txt`` is
 the exact stdout. Dates and owners are passed explicitly in args so output is stable.
-``--update`` rewrites expected.txt from the current output. Fails if a skill lacks run.py,
+``--update`` rewrites expected.txt from the current output. Fails if a skill lacks its runner,
 SKILL.md or an eval fixture.
 """
 
@@ -20,6 +20,13 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ROOT / ".claude" / "skills"
+
+
+def runner(skill: str) -> Path:
+    """A skill's deterministic part: .claude/skills/<name>/<name_with_underscores>.py."""
+    return SKILLS / skill / (skill.replace("-", "_") + ".py")
+
+
 EVALS = ROOT / "ai" / "evals"
 SECTIONS = ("## Inputs", "## Steps", "## Checks before opening the PR", "## Done when")
 
@@ -29,7 +36,7 @@ def run(skill: str, spec: dict) -> str:
     env.update({"TZ": "UTC", "PYTHONHASHSEED": "0", "QUANT_EVAL": "1", "PYTHONIOENCODING": "utf-8"})
     env.update({k: str(v) for k, v in (spec.get("env") or {}).items()})
     res = subprocess.run(
-        [sys.executable, str(SKILLS / skill / "run.py"), *map(str, spec.get("args") or [])],
+        [sys.executable, str(runner(skill)), *map(str, spec.get("args") or [])],
         cwd=ROOT,
         env=env,
         capture_output=True,
@@ -53,8 +60,8 @@ def main(argv: list[str] | None = None) -> int:
     for name in names:
         sdir = SKILLS / name
         problems = []
-        if not (sdir / "run.py").exists():
-            problems.append("missing run.py")
+        if not runner(name).exists():
+            problems.append(f"missing {runner(name).name}")
         skill_md = sdir / "SKILL.md"
         if not skill_md.exists():
             problems.append("missing SKILL.md")

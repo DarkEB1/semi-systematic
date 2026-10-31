@@ -13,7 +13,7 @@ related: [strategy, tags]
 # Workflow: a researcher's week and an agent loop
 
 Written for a new teammate or a new agent. Everything below is done through `just` recipes inside
-the devcontainer; `just` alone lists them. The rules are in `AGENTS.md`; this file is the story.
+the devcontainer; `just` alone lists them. The rules are in `AGENTS.md` and the per-folder `AGENTS.md` files; this file is the story.
 
 ## Monday: an idea
 

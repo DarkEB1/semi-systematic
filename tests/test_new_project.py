@@ -17,7 +17,9 @@ def _load(name: str, path: Path):
 
 
 new_project = _load("new_project", ROOT / "scripts" / "new_project.py")
-new_experiment = _load("new_experiment", ROOT / ".claude" / "skills" / "new-experiment" / "run.py")
+new_experiment = _load(
+    "new_experiment", ROOT / ".claude" / "skills" / "new-experiment" / "new_experiment.py"
+)
 
 
 def test_readme_from_template_has_id_equal_to_slug():

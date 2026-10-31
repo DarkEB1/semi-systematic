@@ -48,7 +48,7 @@ Each row has fifteen columns (`brain.SCHEMA`): `path`, `heading`, `type`, `title
 
 The build-index skill (`.claude/skills/build-index/SKILL.md`) is the procedure: search two or
 three phrasings, read the hits in full, answer only from what the files say and cite each claim as
-`path › heading`. The skill's `run.py answer "<question>"` prints the citation list. A question
+`path › heading`. The skill's runner, `build_index.py answer "<question>"`, prints the citation list. A question
 with no hits is a gap; the fix is a note or an ADR, then `just index`.
 
 ## Tests

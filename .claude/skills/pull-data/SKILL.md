@@ -5,7 +5,7 @@ description: Add a new data source end to end - scaffold the ingest module from 
 
 # pull-data
 
-Deterministic part: `.claude/skills/pull-data/run.py`, exposed as `just scaffold-source SOURCE`.
+Deterministic part: `.claude/skills/pull-data/pull_data.py`, exposed as `just scaffold-source SOURCE`.
 It writes the scaffold from `template_source.py` in this folder; you write `fetch`/`normalise`,
 the Schema table and the licence line. Eval fixture: `ai/evals/pull-data/`.
 

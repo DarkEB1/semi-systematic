@@ -5,7 +5,7 @@ description: Create a reproducible experiment folder (config.yaml, marimo run.py
 
 # new-experiment
 
-Deterministic part: `.claude/skills/new-experiment/run.py`, exposed as `just experiment SLUG [...]`.
+Deterministic part: `.claude/skills/new-experiment/new_experiment.py`, exposed as `just experiment SLUG [...]`.
 Call it for the scaffold and for `--finish`; you supply the hypothesis, the datasets and the
 judgement in the Verdict. The eval fixture is `ai/evals/new-experiment/`.
 

@@ -4,6 +4,8 @@ and status."""
 
 from __future__ import annotations
 
+from typing import Any
+
 import yaml
 
 from pages import ROOT, frontmatter
@@ -75,7 +77,7 @@ def filtered(filters: dict) -> list[dict]:
     return out
 
 
-def render(mo, filters: dict):
+def render(mo: Any, filters: dict) -> Any:
     parts = []
     projs = projects()
     parts.append(

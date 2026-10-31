@@ -26,9 +26,9 @@ Inputs, one of:
 - convention change: <what changes, and why>
 
 For a question, run `just where "<thing>"`, quote the answer, and add the one sentence of context
-I need; if the mapping has no case for it, add one to MAP in the skill's run.py in a small PR. For a
+I need; if the mapping has no case for it, add one to MAP in the skill's runner (`repo_structure.py`) in a small PR. For a
 convention change, show me the ADR draft first; then change every place the convention lives in
 one PR (knowledge/templates/, scripts/check_frontmatter.py, AGENTS.md, the affected SKILL.md and
-run.py, the golden via `just eval --update`) and run the skill's `run.py --check` until it reports
+runner, the golden via `just eval --update`) and run `just where --check` until it reports
 zero inconsistencies. AGENTS.md stays under 150 lines. Never rename or move an existing knowledge
 file to fit the new convention.

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """Deterministic part of the new-experiment skill (`just experiment SLUG --project P`).
 
-create:  research/<project>/experiments/<date>-<slug>/{config.yaml, run.py, results.md, figures/}
+create:  research/<project>/experiments/<date>-<slug>/{config.yaml, run.py, results.md, figures/};
+         run.py is a copy of template_run.py next to this file.
 finish:  `--finish` drafts results.md and knowledge/research-log/<date>-<slug>.md from
          config.yaml and the files under outputs/; it never invents a number that is not in outputs/.
 dupes:   `--check-dupes` (also run by --finish) flags functions whose source is identical to one in
@@ -28,55 +29,7 @@ ROOT = Path(__file__).resolve().parents[3]
 RESEARCH = ROOT / "research"
 RESEARCH_LOG = ROOT / "knowledge" / "research-log"
 TEAM = ROOT / "knowledge" / "context" / "team.yaml"
-
-NOTEBOOK = """import marimo
-
-__generated_with = "0.25.2"
-app = marimo.App(width="medium")
-
-
-@app.cell
-def _():
-    import json
-    import pathlib
-
-    import marimo as mo
-    import yaml
-
-    from quant import data
-
-    HERE = pathlib.Path(__file__).resolve().parent
-    config = yaml.safe_load((HERE / "config.yaml").read_text(encoding="utf-8"))
-    mo.md(f"# {config['slug']}\\n\\n{config.get('hypothesis', '')}")
-    return HERE, config, data, json, mo
-
-
-@app.cell
-def _(config, data):
-    # Only the datasets named in config.yaml, at the snapshots named there.
-    tables = data.load(config)
-    tables
-    return (tables,)
-
-
-@app.cell
-def _(HERE, config, json, tables):
-    # Everything --finish may quote must be written to outputs/. No other numbers count.
-    out = HERE / "outputs"
-    out.mkdir(exist_ok=True)
-    metrics = {
-        "seed": config.get("seed"),
-        "datasets_loaded": len(tables),
-        "rows": {k: v.num_rows for k, v in tables.items()},
-    }
-    (out / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    metrics
-    return
-
-
-if __name__ == "__main__":
-    app.run()
-"""
+NOTEBOOK = (Path(__file__).resolve().parent / "template_run.py").read_text(encoding="utf-8")
 
 
 def projects() -> list[str]:
@@ -96,6 +49,9 @@ def default_owner() -> str:
     return str(
         (team or {}).get("data_layer_owner") or ((team or {}).get("handles") or ["unknown"])[0]
     )
+
+
+# --------------------------------------------------------------------------- scaffold
 
 
 def config_text(
@@ -231,69 +187,41 @@ def check_dupes(folder: Path) -> list[str]:
 # --------------------------------------------------------------------------- finish
 
 
-def finish(folder: Path, owner: str, date: str, dry_run: bool) -> int:
-    cfg = yaml.safe_load((folder / "config.yaml").read_text(encoding="utf-8")) or {}
-    slug = str(cfg.get("slug") or folder.name)
-    project = str(cfg.get("project") or folder.parent.parent.name)
-    folder_rel = folder.relative_to(ROOT).as_posix()
+def result_block(folder: Path) -> str:
+    """The Result section: every quotable file under outputs/, verbatim; never a typed number."""
     outputs = sorted((folder / "outputs").glob("*")) if (folder / "outputs").exists() else []
-    result_lines: list[str] = []
+    lines: list[str] = []
     for f in outputs:
         if f.suffix == ".json":
             try:
                 obj = json.loads(f.read_text(encoding="utf-8"))
             except json.JSONDecodeError:
                 continue
-            result_lines.append(f"From `outputs/{f.name}`:")
-            result_lines.append("")
-            result_lines.append("```json")
-            result_lines.append(json.dumps(obj, indent=2, sort_keys=True))
-            result_lines.append("```")
+            body, fence = json.dumps(obj, indent=2, sort_keys=True), "```json"
         elif f.suffix in {".txt", ".md", ".csv"} and f.stat().st_size < 20_000:
-            result_lines.append(f"From `outputs/{f.name}`:")
-            result_lines.append("")
-            result_lines.append("```")
-            result_lines.append(f.read_text(encoding="utf-8").rstrip())
-            result_lines.append("```")
-    if not result_lines:
-        result_lines = [
-            "No files under outputs/. Run the notebook first; --finish quotes outputs only."
-        ]
-    result_block = "\n".join(result_lines)
+            body, fence = f.read_text(encoding="utf-8").rstrip(), "```"
+        else:
+            continue
+        lines += [f"From `outputs/{f.name}`:", "", fence, body, "```"]
+    if not lines:
+        lines = ["No files under outputs/. Run the notebook first; --finish quotes outputs only."]
+    return "\n".join(lines)
 
-    results_path = folder / "results.md"
-    text = (
-        results_path.read_text(encoding="utf-8")
-        if results_path.exists()
-        else results_text(slug, owner, date, str(cfg.get("hypothesis", "")))
-    )
-    if re.search(r"^status:\s*final\s*$", text, flags=re.M):
-        print(
-            f"{results_path.relative_to(ROOT).as_posix()} is final (frozen); not touching it",
-            file=sys.stderr,
-        )
-        return 1
-    new_results = re.sub(
-        r"(## Result\n\n)(.*?)(?=\n## |\Z)",
-        lambda m: m.group(1) + result_block + "\n",
-        text,
-        count=1,
-        flags=re.S,
-    )
+
+def log_text(cfg: dict, folder: Path, owner: str, date: str, result: str) -> tuple[str, str]:
+    """The research-log entry drafted from config.yaml and the Result block; returns (id, text)."""
+    slug = str(cfg.get("slug") or folder.name)
+    project = str(cfg.get("project") or folder.parent.parent.name)
+    folder_rel = folder.relative_to(ROOT).as_posix()
     datasets = cfg.get("datasets") or []
     data_lines = [f"- {d.get('name')} at snapshot {d.get('snapshot')}" for d in datasets] or [
         "- none (no curated snapshot named in config.yaml)"
     ]
-    tags = ["data"] + (
-        ["fx"]
-        if any(
-            "fx" in str(d.get("name", "")) or "prices" in str(d.get("name", "")) for d in datasets
-        )
-        else []
-    )
+    names = [str(d.get("name", "")) for d in datasets]
+    tags = ["data"] + (["fx"] if any("fx" in n or "prices" in n for n in names) else [])
     log_id = f"{date}-{slug}"
     title = cfg.get("hypothesis", slug).strip().splitlines()[0][:100]
-    log = f"""---
+    text = f"""---
 id: {log_id}
 type: research-log
 title: "{title}"
@@ -302,7 +230,7 @@ authors: [{owner}]
 owner: {owner}
 status: draft
 tags: [{", ".join(tags)}]
-datasets: [{", ".join(str(d.get("name")) for d in datasets)}]
+datasets: [{", ".join(names)}]
 project: {project}
 related: [{project}]
 ---
@@ -324,7 +252,7 @@ Notebook: [{folder.name}/run.py](../../{folder_rel}/run.py).
 
 ## Result
 
-{result_block}
+{result}
 
 ## Verdict
 
@@ -335,19 +263,43 @@ _TODO: keep / park / kill, and the one thing you would do next._
 - project: [research/{project}](../../research/{project}/README.md)
 - experiment: [{folder_rel}](../../{folder_rel}/results.md)
 """
-    files = {
-        f"{folder_rel}/results.md": new_results,
-        f"knowledge/research-log/{log_id}.md": log,
-    }
+    return log_id, text
+
+
+def finish(folder: Path, owner: str, date: str, dry_run: bool) -> int:
+    cfg = yaml.safe_load((folder / "config.yaml").read_text(encoding="utf-8")) or {}
+    slug = str(cfg.get("slug") or folder.name)
+    folder_rel = folder.relative_to(ROOT).as_posix()
+    results_path = folder / "results.md"
+    text = (
+        results_path.read_text(encoding="utf-8")
+        if results_path.exists()
+        else results_text(slug, owner, date, str(cfg.get("hypothesis", "")))
+    )
+    if re.search(r"^status:\s*final\s*$", text, flags=re.M):
+        print(f"{folder_rel}/results.md is final (frozen); not touching it", file=sys.stderr)
+        return 1
+    result = result_block(folder)
+    new_results = re.sub(
+        r"(## Result\n\n)(.*?)(?=\n## |\Z)",
+        lambda m: m.group(1) + result + "\n",
+        text,
+        count=1,
+        flags=re.S,
+    )
+    log_id, log = log_text(cfg, folder, owner, date, result)
     for w in check_dupes(folder):
         print(w, file=sys.stderr)
     if dry_run:
-        for rel, t in files.items():
+        for rel, t in {
+            f"{folder_rel}/results.md": new_results,
+            f"knowledge/research-log/{log_id}.md": log,
+        }.items():
             print(f"--- {rel}")
             print(t, end="")
         return 0
     results_path.write_text(new_results, encoding="utf-8")
-    print(results_path.relative_to(ROOT).as_posix())
+    print(f"{folder_rel}/results.md")
     log_path = RESEARCH_LOG / f"{log_id}.md"
     if log_path.exists():
         print(f"exists, not overwritten: {log_path.relative_to(ROOT).as_posix()}", file=sys.stderr)
@@ -371,7 +323,7 @@ def find_folder(slug: str, project: str | None, date: str) -> Path | None:
     return matches[-1] if matches else None
 
 
-def main(argv: list[str] | None = None) -> int:
+def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="just experiment")
     p.add_argument("slug", help="short-kebab-slug")
     p.add_argument(
@@ -392,7 +344,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--check-dupes", action="store_true")
     p.add_argument("--dry-run", action="store_true", help="print files instead of writing")
-    a = p.parse_args(argv)
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    a = parser().parse_args(argv)
     if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,60}", a.slug):
         print("slug must be short-kebab-case", file=sys.stderr)
         return 2

@@ -64,7 +64,7 @@ The new-experiment golden changed by exactly the path and the `project` key.
 
 Done for the tools tier: `tools/README.md` (contract), `scripts/check_isolation.py` and `scripts/new_tool.py` with
 `just new-tool`, both tools moved to src layout, `brain` 0.2.0 with `Repo`, `--root` and
-fixture tests, consumers (`build-index/run.py`, hub pages, `upload_index.py`, two skill runners,
+fixture tests, consumers (the build-index runner, hub pages, `upload_index.py`, two skill runners,
 `onboard.py`) import installed packages, pytest `testpaths` globs `tools/*/tests`, ADR-0002,
 docs updated (AGENTS.md map and interface, start-here tree, CONTRIBUTING, repo-structure MAP,
 brain README). Verified in the devcontainer: `uv lock`, `just setup`, `just check`, `just test`,
@@ -78,12 +78,12 @@ Not done, needs a human: the PR review; the decision on whether skill cores move
 - [tools/README.md](../../tools/README.md), [tools/brain](../../tools/brain/README.md) (pyproject, `src/brain/*`, tests), [tools/backtest](../../tools/backtest/README.md) (pyproject, `src/backtest/__init__.py`, tests)
 - [scripts/check_isolation.py](../../scripts/check_isolation.py), [scripts/new_tool.py](../../scripts/new_tool.py), [scripts/upload_index.py](../../scripts/upload_index.py), [scripts/onboard.py](../../scripts/onboard.py)
 - [tests/test_new_tool.py](../../tests/test_new_tool.py), [tests/test_brain_repo.py](../../tests/test_brain_repo.py)
-- [.claude/skills/build-index/run.py](../../.claude/skills/build-index/run.py), [promote-dataset/run.py](../../.claude/skills/promote-dataset/run.py), [refresh-data/run.py](../../.claude/skills/refresh-data/run.py), [repo-structure/run.py](../../.claude/skills/repo-structure/run.py)
+- [.claude/skills/build-index/build_index.py](../../.claude/skills/build-index/build_index.py), [promote-dataset/run.py](../../.claude/skills/promote-dataset/promote_dataset.py), [refresh-data/run.py](../../.claude/skills/refresh-data/refresh_data.py), [repo-structure/run.py](../../.claude/skills/repo-structure/repo_structure.py)
 - [dashboards/hub/pages/knowledge.py](../../dashboards/hub/pages/knowledge.py), [dashboards/hub/pages/data_health.py](../../dashboards/hub/pages/data_health.py)
 - [justfile](../../justfile), [pyproject.toml](../../pyproject.toml), [uv.lock](../../uv.lock)
 - [AGENTS.md](../../AGENTS.md), [CONTRIBUTING.md](../../CONTRIBUTING.md), [start-here](../context/start-here.md), [workflow](../context/workflow.md), [walkthrough](../context/walkthrough.md), [ADR-0002](../decisions/ADR-0002-tools-are-isolated-packages.md), [ADR-0003](../decisions/ADR-0003-isolation-principle.md), [knowledge/INDEX.md](../INDEX.md)
 - [ADR-0004](../decisions/ADR-0004-projects-are-folders.md), [knowledge/templates/project.md](../templates/project.md), [research/demo/README.md](../../research/demo/README.md), [scripts/new_project.py](../../scripts/new_project.py), [tests/test_new_project.py](../../tests/test_new_project.py), [scripts/check_frontmatter.py](../../scripts/check_frontmatter.py), [scripts/check_frozen.py](../../scripts/check_frozen.py), [scripts/task.py](../../scripts/task.py), [ai/tasks/demo.yaml](../../ai/tasks/demo.yaml), [ai/evals/new-experiment](../../ai/evals/new-experiment/expected.txt)
-- [scripts/check_isolation.py](../../scripts/check_isolation.py), [scripts/check_env.py](../../scripts/check_env.py), [dashboards/hub/pages/tools.py](../../dashboards/hub/pages/tools.py), [dashboards/hub/README.md](../../dashboards/hub/README.md), [research/README.md](../../research/README.md), [new-experiment/SKILL.md](../../.claude/skills/new-experiment/SKILL.md), [new-experiment/run.py](../../.claude/skills/new-experiment/run.py)
+- [scripts/check_isolation.py](../../scripts/check_isolation.py), [scripts/check_env.py](../../scripts/check_env.py), [dashboards/hub/pages/tools.py](../../dashboards/hub/pages/tools.py), [dashboards/hub/README.md](../../dashboards/hub/README.md), [research/README.md](../../research/README.md), [new-experiment/SKILL.md](../../.claude/skills/new-experiment/SKILL.md), [new-experiment/run.py](../../.claude/skills/new-experiment/new_experiment.py)
 
 ## Files relied on
 

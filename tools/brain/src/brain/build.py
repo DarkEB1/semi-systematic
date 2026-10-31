@@ -22,6 +22,7 @@ import re
 import subprocess
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
+from typing import Any
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -86,7 +87,7 @@ def split_frontmatter(text: str) -> tuple[dict, str]:
     return (fm if isinstance(fm, dict) else {}), m.group(2)
 
 
-def _aslist(v) -> list[str]:
+def _aslist(v: object) -> list[str]:
     if v is None:
         return []
     if isinstance(v, list):
@@ -136,7 +137,7 @@ def _chunk_markdown(rel: str, path: Path, text: str) -> list[Chunk]:
     else:
         typ = str(fm.get("type") or "doc")
         title = str(fm.get("title") or _h1(body) or path.stem)
-    meta = dict(
+    meta: dict[str, Any] = dict(
         source="repo",
         path=rel,
         type=typ,
@@ -149,7 +150,8 @@ def _chunk_markdown(rel: str, path: Path, text: str) -> list[Chunk]:
         status=str(fm["status"]) if fm.get("status") else None,
     )
     out: list[Chunk] = []
-    heading, buf = "", []
+    heading = ""
+    buf: list[str] = []
     n = 0
 
     def flush() -> None:

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Deterministic part of the build-index skill (`just index`, `just search`).
 
-run.py build                 rebuild .index/chunks.parquet and knowledge/INDEX.md
-run.py search QUERY          ILIKE search, newest first, with paths to cite
-run.py chunk-file PATH       show how one file is chunked (JSON), used by the eval
-run.py answer QUERY          search and print a citation list for "what do we know about X"
+build_index.py build         rebuild .index/chunks.parquet and knowledge/INDEX.md
+build_index.py search QUERY  ILIKE search, newest first, with paths to cite
+build_index.py chunk-file PATH  show how one file is chunked (JSON), used by the eval
+build_index.py answer QUERY  search and print a citation list for "what do we know about X"
 
 Thin wrapper over the `brain` tool (tools/brain): this file knows the repo root, brain does not.
 """

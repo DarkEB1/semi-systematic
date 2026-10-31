@@ -5,7 +5,7 @@ description: Move a dataset from scratch/ to curated/ under the schema contract 
 
 # promote-dataset
 
-Deterministic part: `.claude/skills/promote-dataset/run.py`, exposed as
+Deterministic part: `.claude/skills/promote-dataset/promote_dataset.py`, exposed as
 `just promote-request NAME SCRATCH_KEY`. It validates and writes the request; the copy to
 `curated/<name>/snapshot=<date>/` happens in `promote.yml` with `QUANT_ROLE=promote` after the
 merge. Eval fixture: `ai/evals/promote-dataset/`.

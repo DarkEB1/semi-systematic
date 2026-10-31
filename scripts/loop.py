@@ -7,8 +7,10 @@ deterministic part (.claude/skills/<skill>/run.py) with the task's args, checks 
 the iteration changed is under allowed_paths, evaluates stop conditions, and appends the
 iteration summary to ONE agent-log entry: knowledge/agent-log/<date>-loop-<slug>.md.
 
-A model-driven loop uses the same file: set ``command: ["claude", "-p", "/<skill> {slug} iteration {i}"]``
-in the task YAML and the runner executes that instead of run.py, with the same budget and path checks.
+A model-driven loop uses the same file: set ``prompt: "/<skill> {slug} iteration {i} ..."`` in
+the task YAML and the runner executes ``claude -p`` with it, in auto mode (Claude judges each
+action, nobody is asked), capped by ``budget.max_turns`` and ``budget.max_usd``, with the same
+path check and agent-log. ``command: [...]`` runs any other executable instead.
 """
 
 from __future__ import annotations
@@ -25,6 +27,13 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 TASKS = ROOT / "ai" / "tasks"
 SKILLS = ROOT / ".claude" / "skills"
+
+
+def runner(skill: str) -> Path:
+    """A skill's deterministic part: .claude/skills/<name>/<name_with_underscores>.py."""
+    return SKILLS / skill / (skill.replace("-", "_") + ".py")
+
+
 LOGS = ROOT / "knowledge" / "agent-log"
 
 
@@ -48,8 +57,12 @@ def load_task(slug: str) -> dict:
         )
     if not task.get("allowed_paths"):
         raise LoopError("refusing to start: allowed_paths is empty")
-    if not task.get("command") and not (SKILLS / str(task.get("skill")) / "run.py").exists():
-        raise LoopError(f"skill {task.get('skill')!r} has no run.py")
+    if (
+        not task.get("command")
+        and not task.get("prompt")
+        and not runner(str(task.get("skill"))).exists()
+    ):
+        raise LoopError(f"skill {task.get('skill')!r} has no runner under .claude/skills/")
     task["_path"] = path
     return task
 
@@ -79,15 +92,42 @@ def substitute(args: list[str], slug: str, i: int) -> list[str]:
     return [str(a).replace("{slug}", slug).replace("{i}", str(i)) for a in args]
 
 
-def run_iteration(task: dict, slug: str, i: int) -> subprocess.CompletedProcess:
+def claude_command(task: dict, slug: str, i: int) -> list[str]:
+    """``claude -p`` for a model-driven iteration: auto mode, a turn cap and an optional spend cap.
+
+    No ``--bare``: the run must see AGENTS.md, the skills and the hooks. Nothing here can prompt a
+    person; in auto mode a blocked action is denied and the run carries on."""
+    budget = task.get("budget") or {}
+    cmd = [
+        "claude",
+        "-p",
+        substitute([task["prompt"]], slug, i)[0],
+        "--permission-mode",
+        "auto",
+        "--max-turns",
+        str(int(budget.get("max_turns") or 30)),
+        "--output-format",
+        "text",
+    ]
+    if budget.get("max_usd"):
+        cmd += ["--max-budget-usd", str(float(budget["max_usd"]))]
+    return cmd
+
+
+def iteration_command(task: dict, slug: str, i: int) -> list[str]:
     if task.get("command"):
-        cmd = substitute(task["command"], slug, i)
-    else:
-        cmd = [
-            sys.executable,
-            str(SKILLS / task["skill"] / "run.py"),
-            *substitute(task.get("args") or [], slug, i),
-        ]
+        return substitute(task["command"], slug, i)
+    if task.get("prompt"):
+        return claude_command(task, slug, i)
+    return [
+        sys.executable,
+        str(runner(task["skill"])),
+        *substitute(task.get("args") or [], slug, i),
+    ]
+
+
+def run_iteration(task: dict, slug: str, i: int) -> subprocess.CompletedProcess:
+    cmd = iteration_command(task, slug, i)
     return subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False)
 
 
@@ -113,7 +153,9 @@ class AgentLog:
 
     def write(self, *, stop_reason: str = "running", status: str = "draft") -> None:
         owner = self.task.get("owner", "unknown")
-        skill = self.task.get("skill", "custom command")
+        skill = self.task.get("skill") or (
+            "claude -p" if self.task.get("prompt") else "custom command"
+        )
         budget = self.task.get("budget", {})
         relied = [
             self.task["_path"].relative_to(ROOT).as_posix(),
@@ -139,7 +181,7 @@ tags: [infra]
 - goal: {self.task.get("goal")}
 - metric: {self.task.get("metric")}
 - skill: {skill}
-- budget: {budget.get("max_iterations")} iterations, {budget.get("max_hours")} h
+- budget: {budget.get("max_iterations")} iterations, {budget.get("max_hours")} h{f", {budget.get('max_turns')} turns per iteration" if self.task.get("prompt") else ""}{f", {budget.get('max_usd')} USD per iteration" if budget.get("max_usd") else ""}
 - allowed paths: {", ".join(self.task.get("allowed_paths", []))}
 - stop conditions: {", ".join(map(str, self.task.get("stop_conditions") or [])) or "none (budget only)"}
 

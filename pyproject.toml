@@ -27,6 +27,7 @@ dev = [
     "ruff>=0.12",
     "pre-commit>=4.2",
     "python-frontmatter>=1.1",
+    "mypy>=1.15",
 ]
 
 [tool.uv.workspace]
@@ -53,8 +54,18 @@ target-version = "py312"
 extend-exclude = [".index", "research/*/experiments/*/figures"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "TID"]
-ignore = ["E501"]
+# Shape caps keep every unit small enough to read in one pass (ADR-0005): complexity, branches,
+# statements and arguments per function; public functions carry type annotations (ANN).
+select = ["E", "F", "I", "UP", "B", "TID", "C90", "PLR0912", "PLR0913", "PLR0915", "ANN"]
+ignore = ["E501", "ANN401", "ANN204"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.ruff.lint.pylint]
+max-branches = 14
+max-statements = 50
+max-args = 10
 
 # src/quant may import only the base dependency group. The ml group is banned
 # repo-wide and re-allowed below for research, tools and dashboards.
@@ -66,6 +77,20 @@ ignore = ["E501"]
 "xgboost".msg = "optional group 'ml': not allowed in src/quant. Use it from research/ or tools/."
 
 [tool.ruff.lint.per-file-ignores]
-"research/**" = ["TID251", "B018"]  # marimo cells end with a bare expression to display it
+"research/**" = ["TID251", "B018", "ANN"]  # marimo cells end with a bare expression to display it
 "tools/**" = ["TID251"]
 "dashboards/**" = ["TID251", "B018"]
+"dashboards/hub/app.py" = ["ANN"]  # marimo cells
+".claude/skills/*/template_*.py" = ["ANN", "B018"]  # scaffolding templates, copied verbatim
+"tests/**" = ["ANN"]
+"tools/*/tests/**" = ["ANN"]
+
+[tool.mypy]
+# `just check` runs `uv run mypy` over these; research notebooks are excluded on purpose.
+python_version = "3.12"
+files = ["src/quant", "tools/brain/src", "tools/backtest/src", "scripts", ".claude/skills", "dashboards/hub/pages"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true

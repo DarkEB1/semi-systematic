@@ -25,7 +25,9 @@ TODO: grow this as terms are used in discussion; one line per term, alphabetical
 - promote: moving a scratch Parquet to `curated/` through a request file and the schema contract.
 - raw: the `raw/` prefix; data as received, written only by the nightly ingest.
 - scratch: the `scratch/<handle>/` prefix; the only place people and agents write.
-- skill: a packaged routine task under `.claude/skills/` with a deterministic `run.py`.
+- skill: a packaged routine task under `.claude/skills/<name>/`: a `SKILL.md` and a deterministic runner `<name_with_underscores>.py`.
+- reviewer: the read-only subagent in `.claude/agents/reviewer.md` that checks a PR against its spec before a merge.
+- hook: a command or model check in `.claude/settings.json` that Claude Code runs around tool calls; the zero-exception rules live there.
 - snapshot: a dated, immutable copy of a curated dataset, `snapshot=YYYY-MM-DD`.
 
 ## Market terms

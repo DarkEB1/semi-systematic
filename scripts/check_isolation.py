@@ -34,7 +34,7 @@ REPO_UNITS = {"quant", "scripts", "dashboards", "pages", "tests", "research"}
 SYS_PATH_ALLOW = {
     "dashboards/hub/app.py",  # marimo runs app.py as a file; its pages/ package is next to it
     "scripts/tags.py",  # scripts/ is not a package; sibling import
-    ".claude/skills/repo-structure/run.py",  # imports scripts/check_frontmatter.py constants
+    ".claude/skills/repo-structure/repo_structure.py",  # imports scripts/check_frontmatter.py constants
 }
 SCAN_DIRS = ("src", "scripts", "tools", "dashboards", ".claude", "tests", "research")
 

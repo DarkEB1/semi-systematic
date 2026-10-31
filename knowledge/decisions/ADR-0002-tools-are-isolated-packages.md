@@ -37,14 +37,14 @@ A tool is an isolated package under `tools/<name>/` that follows the contract in
 `brain` was refactored to the contract (`Repo` config, `--root` on the CLI, fixture-based tests,
 no `polars` or `python-frontmatter` dependency it did not use). `backtest` keeps its reserved,
 empty shape in the new layout. The repo-specific code stays where it was: `src/quant/` for the
-data layer, `scripts/` for checkers and runners, `.claude/skills/*/run.py` for skill logic.
+data layer, `scripts/` for checkers and runners, `.claude/skills/<name>/<name>.py` for skill logic.
 
 ## Consequences
 
 - A second repository can `pip install` or workspace-link a tool and use it with its own paths.
 - Replacing an engine (for example a third-party backtester) touches one tool and its tests.
 - Each tool carries its own small overhead: pyproject, README, tests, a lock update.
-- Skill runners remain script-tier. A skill whose core becomes reusable moves that core into a tool and keeps `run.py` thin; that move is the next step, not part of this ADR.
+- Skill runners remain script-tier. A skill whose core becomes reusable moves that core into a tool and keeps its runner thin; that move is the next step, not part of this ADR.
 - The eight rules in `AGENTS.md` are unchanged; the map row for tools and the `just` interface gained `new-tool`.
 
 ## Alternatives considered

@@ -35,6 +35,7 @@ check:
     uv run python scripts/check_env.py
     uv run python scripts/check_frozen.py
     uv run python scripts/check_isolation.py
+    uv run mypy
     gitleaks dir . --redact --no-banner --exit-code 1
 
 # Diff every skill's deterministic part against its golden fixture (ai/evals)
@@ -49,7 +50,7 @@ ingest SOURCE *ARGS:
 
 # Find gaps between expected and actual raw partitions and re-ingest them
 refresh *ARGS:
-    uv run python .claude/skills/refresh-data/run.py "$@"
+    uv run python .claude/skills/refresh-data/refresh_data.py "$@"
 
 # Execute a promote request (CI): just promote promote/requests/<file>.yml
 promote REQUEST:
@@ -57,11 +58,11 @@ promote REQUEST:
 
 # Validate a scratch Parquet against its dataset README and write a promote request
 promote-request NAME SCRATCH_KEY *ARGS:
-    uv run python .claude/skills/promote-dataset/run.py "$1" "$2" "${@:3}"
+    uv run python .claude/skills/promote-dataset/promote_dataset.py "$1" "$2" "${@:3}"
 
 # Scaffold an ingest module, README, catalog view, test and workflow entry for SOURCE
 scaffold-source SOURCE *ARGS:
-    uv run python .claude/skills/pull-data/run.py "$1" "${@:2}"
+    uv run python .claude/skills/pull-data/pull_data.py "$1" "${@:2}"
 
 # Latest partition vs expected cadence for every raw dataset (headless data-health page)
 data-health *ARGS:
@@ -104,11 +105,11 @@ tags:
 
 # Scaffold a meeting file from the template: just meeting 2026-10-29 "weekly sync"
 meeting DATE TITLE *ARGS:
-    uv run python .claude/skills/meeting-notes/run.py "$1" "$2" "${@:3}"
+    uv run python .claude/skills/meeting-notes/meeting_notes.py "$1" "$2" "${@:3}"
 
 # Explain where a new thing goes and check convention files agree: just where "ingest module"
 where THING:
-    uv run python .claude/skills/repo-structure/run.py "$1"
+    uv run python .claude/skills/repo-structure/repo_structure.py "$1"
 
 # --- research ------------------------------------------------------------------
 
@@ -118,7 +119,7 @@ project SLUG *ARGS:
 
 # Create research/<project>/experiments/<today>-<slug>/ (--project P; --finish drafts results and the log entry)
 experiment SLUG *ARGS:
-    uv run python .claude/skills/new-experiment/run.py "$1" "${@:2}"
+    uv run python .claude/skills/new-experiment/new_experiment.py "$1" "${@:2}"
 
 # Run the internal dashboard hub (marimo) on port 2718
 dashboard *ARGS:

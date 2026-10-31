@@ -5,7 +5,7 @@ description: Rebuild the repo retrieval index (chunks.parquet and knowledge/INDE
 
 # build-index
 
-Deterministic part: `.claude/skills/build-index/run.py` (`build`, `search`, `answer`,
+Deterministic part: `.claude/skills/build-index/build_index.py` (`build`, `search`, `answer`,
 `chunk-file`), exposed as `just index` and `just search "..."`. The index is repo-only in v1
 (DuckDB `ILIKE`); `just embed` errors until an embedding model is configured. Eval fixture:
 `ai/evals/build-index/` (chunking of a sample file).
@@ -20,7 +20,7 @@ Deterministic part: `.claude/skills/build-index/run.py` (`build`, `search`, `ans
 
 1. `just index` whenever knowledge, catalog, experiments, skills or code changed. It also
    regenerates `knowledge/INDEX.md` (by type newest first, by tag, by owner); commit that file.
-2. To answer a question: `just search "<words>"` (or `run.py answer "<question>"` for a citation
+2. To answer a question: `just search "<words>"` (or `build_index.py answer "<question>"` for a citation
    list). Try two or three phrasings: the index matches text literally.
 3. Read the hits that matter in full (the snippet is not the source). Answer only from what the
    files say, and cite every claim as `path › heading`. If nothing matches, say so and suggest

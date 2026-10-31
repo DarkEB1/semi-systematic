@@ -53,5 +53,5 @@ A tool that costs money (a paid engine, a hosted model) says so in the ADR.
 
 - Reading and writing the bucket, the prefix rules, the schema contract: `src/quant/` (the repo's own library, CODEOWNERS-gated in parts).
 - Checkers, runners, onboarding: `scripts/`.
-- Skill logic: `.claude/skills/<name>/run.py` today; a skill that grows a reusable core moves that core into a tool and keeps `run.py` as the thin wrapper.
+- Skill logic: `.claude/skills/<name>/<name_with_underscores>.py` today; a skill that grows a reusable core moves that core into a tool and keeps the runner as the thin wrapper.
 - Dashboards: `dashboards/hub/`, which imports tools and `quant` but is imported by nothing.

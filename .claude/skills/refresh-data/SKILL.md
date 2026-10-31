@@ -5,7 +5,7 @@ description: Find raw datasets whose latest partition lags the cadence their REA
 
 # refresh-data
 
-Deterministic part: `.claude/skills/refresh-data/run.py`, exposed as `just refresh`. Without
+Deterministic part: `.claude/skills/refresh-data/refresh_data.py`, exposed as `just refresh`. Without
 flags it prints the plan; `--execute` runs it. `data-health.yml` already opens one issue per
 stale dataset nightly; this skill is what closes them. Eval fixture: `ai/evals/refresh-data/`.
 

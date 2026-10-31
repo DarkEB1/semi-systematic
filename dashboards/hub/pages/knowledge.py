@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from brain import Repo, search
 
 from pages import ROOT
@@ -14,7 +16,7 @@ def rows(query: str, limit: int = 30) -> list[dict]:
     return [h.__dict__ for h in search(query, repo=REPO, limit=limit)] if query else []
 
 
-def render(mo, filters: dict):
+def render(mo: Any, filters: dict) -> Any:
     q = filters.get("query") or ""
     parts = []
     if q:

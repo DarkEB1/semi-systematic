@@ -17,6 +17,13 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 TASKS = ROOT / "ai" / "tasks"
 SKILLS = ROOT / ".claude" / "skills"
+
+
+def runner(skill: str) -> Path:
+    """A skill's deterministic part: .claude/skills/<name>/<name_with_underscores>.py."""
+    return SKILLS / skill / (skill.replace("-", "_") + ".py")
+
+
 DEFAULT_ALLOWED = ["research/", "knowledge/agent-log/", "knowledge/research-log/"]
 
 
@@ -26,13 +33,15 @@ def build(
     skill: str,
     goal: str,
     metric: str,
-    max_iterations: int,
-    max_hours: float,
+    budget: dict,
     allowed: list[str],
     owner: str,
     date: str,
     args: list[str] | None = None,
+    prompt: str | None = None,
 ) -> dict:
+    """The task document. ``prompt`` makes it model-driven (``claude -p`` in auto mode, capped by
+    ``budget.max_turns`` and ``budget.max_usd``); otherwise the skill's runner runs with ``args``."""
     return {
         "slug": slug,
         "created": date,
@@ -40,13 +49,23 @@ def build(
         "goal": goal,
         "metric": metric,
         "skill": skill,
-        # args for the skill's run.py; {slug} and {i} (1-based iteration) are substituted
+        # args for the skill's runner; {slug} and {i} (1-based iteration) are substituted
         "args": args if args is not None else ["{slug}-{i}", "--owner", owner],
-        "budget": {"max_iterations": int(max_iterations), "max_hours": float(max_hours)},
+        **({"prompt": prompt} if prompt else {}),
+        "budget": budget,
         # stop_conditions: "stdout_contains:<text>" | "file_exists:<relative path>"
         "stop_conditions": [],
         "allowed_paths": list(allowed),
     }
+
+
+def budget(a: argparse.Namespace) -> dict:
+    out: dict = {"max_iterations": int(a.max_iterations), "max_hours": float(a.max_hours)}
+    if a.prompt:
+        out["max_turns"] = int(a.max_turns)
+        if a.max_usd:
+            out["max_usd"] = float(a.max_usd)
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -58,21 +77,33 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--max-iterations", type=int, default=2)
     p.add_argument("--max-hours", type=float, default=1.0)
     p.add_argument(
+        "--prompt",
+        default=None,
+        help="make the loop model-driven: `claude -p PROMPT` in auto mode ({slug} and {i} substituted)",
+    )
+    p.add_argument("--max-turns", type=int, default=30, help="turn cap per model-driven iteration")
+    p.add_argument(
+        "--max-usd", type=float, default=None, help="spend cap per model-driven iteration"
+    )
+    p.add_argument(
         "--allowed", action="append", default=None, help="allowed path prefix (repeatable)"
     )
     p.add_argument(
         "--arg",
         action="append",
         default=None,
-        help="argument for the skill run.py (repeatable; {slug} and {i} are substituted; use --arg=--flag)",
+        help="argument for the skill runner (repeatable; {slug} and {i} are substituted; use --arg=--flag)",
     )
     p.add_argument("--owner", default=None)
     p.add_argument("--date", default=None, help="override today (evals)")
     p.add_argument("--force", action="store_true")
     p.add_argument("--dry-run", action="store_true", help="print the YAML instead of writing it")
     a = p.parse_args(argv)
-    if not (SKILLS / a.skill / "run.py").exists():
-        print(f"unknown skill {a.skill!r}: no .claude/skills/{a.skill}/run.py", file=sys.stderr)
+    if not runner(a.skill).exists():
+        print(
+            f"unknown skill {a.skill!r}: no {runner(a.skill).relative_to(ROOT).as_posix()}",
+            file=sys.stderr,
+        )
         return 2
     owner = a.owner or _default_owner()
     doc = build(
@@ -80,12 +111,12 @@ def main(argv: list[str] | None = None) -> int:
         skill=a.skill,
         goal=a.goal,
         metric=a.metric,
-        max_iterations=a.max_iterations,
-        max_hours=a.max_hours,
+        budget=budget(a),
         allowed=a.allowed or DEFAULT_ALLOWED,
         owner=owner,
         date=a.date or dt.date.today().isoformat(),
         args=a.arg,
+        prompt=a.prompt,
     )
     text = yaml.safe_dump(doc, sort_keys=False)
     if a.dry_run:
