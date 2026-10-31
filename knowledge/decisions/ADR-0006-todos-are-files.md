@@ -5,7 +5,7 @@ title: "ADR-0006: the team board is one file per todo, rendered by the hub"
 date: 2026-10-31
 authors: [DarkEB1]
 owner: DarkEB1
-status: accepted
+status: superseded
 tags: [infra]
 related: [ADR-0001-initial-setup, ADR-0005-llm-friendly-repo, working-with-agents]
 ---
@@ -34,6 +34,9 @@ that renders repo files. Agents work through `just` recipes and files, never thr
   keep the checkbox and link the todo under `related`.
 
 ## Consequences
+
+Superseded on 2026-10-31 by [ADR-0007](ADR-0007-todos-live-on-their-own-branch.md): cards keep this
+shape but live on the `todos` branch, not under `knowledge/todos/` on `main`.
 
 - Ownership and status are validated and searchable, and the board is as current as the checkout.
   An agent can create, move and finish todos with the same recipes a person uses.

@@ -60,6 +60,7 @@ semi-systematic/
 │   ├── brain/                retrieval index (`just index`, `just search`)
 │   └── backtest/             reserved for the first reusable backtest loop; `just new-tool` adds more
 ├── dashboards/hub/           one marimo hub, five pages (`just dashboard`, port 2718)
+├── .todos/                   worktree of the `todos` branch, the team board; `just todo` keeps it (gitignored)
 ├── .claude/
 │   ├── settings.json         Claude Code team settings: deny rules, hooks (the zero-exception rules)
 │   ├── agents/reviewer.md    read-only reviewer subagent; checks a PR against its spec before a merge
@@ -97,7 +98,7 @@ Each activity produces a fixed set of files, so the repo is readable by anyone w
 | added a data source | `src/quant/ingest/<source>.py`, `catalog/datasets/<name>.md`, a view, a test, a workflow matrix entry |
 | promoted a dataset | `promote/requests/<date>-<name>.yml`, then `curated/<name>/snapshot=<date>/` in the bucket |
 | held a meeting | `knowledge/meetings/<date>-<slug>.md`, plus an ADR per decision that passed the ADR test |
-| took on a task | `knowledge/todos/<date>-<slug>.md` via `just todo`, owned by your handle; the hub's board page shows it |
+| took on a task | `just todo "<title>"`: a card on the `todos` branch, owned by your handle, visible from every checkout; the hub's board page shows it |
 | asked an agent | `knowledge/agent-log/<date>-<slug>.md` linking every file it touched and relied on |
 | merged any of it | `knowledge/INDEX.md` regenerated and the chunk table uploaded, so `just search` finds it |
 

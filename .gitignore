@@ -21,6 +21,9 @@ __marimo__/
 .index/
 .obsidian/
 
+# worktree of the todos branch, kept by `just todo` (ADR-0007)
+.todos/
+
 # os / editors
 .DS_Store
 Thumbs.db

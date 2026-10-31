@@ -14,9 +14,10 @@ related: []
 
 # <what has to be done, as a verb phrase>
 
-<!-- One file per todo under knowledge/todos/, created by `just todo "<title>"`. The column is the
-status (todo, doing, done) and the card belongs to `owner`. Move it with
-`just todo <id> --move doing`; the board page of the hub renders these files. Never rename the file. -->
+<!-- One file per card, created by `just todo "<title>"` on the `todos` branch (checked out at
+.todos/, the same from every branch; ADR-0007). The column is the status (todo, doing, done) and
+the card belongs to `owner`. `just todo <id> --move doing` moves it and pushes; the hub's board
+page renders the same files. Never rename the file. -->
 
 ## Done when
 

@@ -107,7 +107,7 @@ tags:
 meeting DATE TITLE *ARGS:
     uv run python .claude/skills/meeting-notes/meeting_notes.py "$1" "$2" "${@:3}"
 
-# The team board: just todo "<title>" [--owner H --due D --project P]; just todo <id> --move doing; just todo --list
+# The team board on the todos branch: just todo "<title>" [--owner H --due D --project P]; just todo <id> --move doing; --list; --sync
 todo *ARGS:
     uv run python scripts/todo.py "$@"
 
@@ -127,6 +127,7 @@ experiment SLUG *ARGS:
 
 # Run the internal dashboard hub (marimo) on port 2718
 dashboard *ARGS:
+    -uv run python scripts/todo.py --sync
     uv run marimo run dashboards/hub/app.py --host 0.0.0.0 --port 2718 --headless "$@"
 
 # --- tools ---------------------------------------------------------------------

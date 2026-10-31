@@ -163,9 +163,9 @@ MAP: list[tuple[tuple[str, ...], str, str, str]] = [
     ),
     (
         ("todo", "task", "kanban", "board", "ticket", "action item"),
-        "knowledge/todos/<date>-<slug>.md (type todo; status todo/doing/done is the column, owner is the handle)",
-        "one file per card, never renamed; the hub's board page renders them read-only (ADR-0006)",
-        '`just todo "<title>" --owner <handle>`; move with `just todo <id> --move doing`',
+        "knowledge/todos/<date>-<slug>.md on the todos branch (type todo; status todo/doing/done is the column, owner is the handle)",
+        "one file per card on one branch for everyone, never on a feature branch, never renamed; the hub's board page renders them (ADR-0007)",
+        '`just todo "<title>" --owner <handle>` creates and pushes; `just todo <id> --move doing` moves; `--list` shows',
     ),
     (
         ("hook", "deny", "permission", "guard"),

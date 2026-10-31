@@ -1,5 +1,6 @@
-"""Board page: the team's kanban, one column per status (todo, doing, done) of the files under
-knowledge/todos/, filterable by owner and status. Read-only: `just todo` creates and moves cards."""
+"""Board page: the team's kanban, one column per status (todo, doing, done) of the cards on the
+`todos` branch, which `just todo` keeps checked out at .todos/ (ADR-0007). Filterable by owner
+and status. Read-only: `just todo` creates and moves cards; `just dashboard` syncs first."""
 
 from __future__ import annotations
 
@@ -8,7 +9,8 @@ from typing import Any
 
 from pages import ROOT, frontmatter
 
-TODOS = ROOT / "knowledge" / "todos"
+WORKTREE = ROOT / ".todos"
+TODOS = WORKTREE / "knowledge" / "todos"
 COLUMNS = ("todo", "doing", "done")
 
 
@@ -26,7 +28,7 @@ def rows() -> list[dict]:
                 "status": str(fm.get("status", "todo")),
                 "due": str(fm.get("due") or ""),
                 "project": str(fm.get("project") or ""),
-                "path": p.relative_to(ROOT).as_posix(),
+                "path": f"knowledge/todos/{p.name}",
             }
         )
     return out
@@ -52,6 +54,11 @@ def card(r: dict, today: str) -> str:
 
 
 def render(mo: Any, filters: dict) -> Any:
+    if not WORKTREE.exists():
+        return mo.md(
+            "_The board is the `todos` branch, checked out at `.todos/` by `just todo`. "
+            "Run `just todo --list` once (or restart with `just dashboard`), then reload._"
+        )
     data = filtered(filters)
     today = dt.date.today().isoformat()
     columns = []
@@ -60,7 +67,7 @@ def render(mo: Any, filters: dict) -> Any:
         items = [mo.md(card(r, today)) for r in mine] or [mo.md("_empty_")]
         columns.append(mo.vstack([mo.md(f"### {col} ({len(mine)})"), *items]))
     head = mo.md(
-        f'**{len(data)} card(s)**. `just todo "<title>" --owner <handle>` adds one; '
-        "`just todo <id> --move doing` moves it. Files live under `knowledge/todos/`."
+        f'**{len(data)} card(s)** on the `todos` branch. `just todo "<title>" --owner <handle>` '
+        "adds one; `just todo <id> --move doing` moves it; both push, so everyone sees it."
     )
     return mo.vstack([head, mo.hstack(columns, widths="equal", align="start")])

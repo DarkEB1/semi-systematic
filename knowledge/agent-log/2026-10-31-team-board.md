@@ -43,7 +43,7 @@ docs, tests. Verified in the devcontainer with `just check`, `just test`, `just 
 
 ## Files touched
 
-- [knowledge/templates/todo.md](../templates/todo.md), [knowledge/todos/2026-10-31-decide-em-rates-and-credit-instruments.md](../todos/2026-10-31-decide-em-rates-and-credit-instruments.md)
+- [knowledge/templates/todo.md](../templates/todo.md), `knowledge/todos/2026-10-31-decide-em-rates-and-credit-instruments.md` (since ADR-0007 on the `todos` branch)
 - [scripts/todo.py](../../scripts/todo.py), [tests/test_todo.py](../../tests/test_todo.py), [justfile](../../justfile)
 - [dashboards/hub/pages/board.py](../../dashboards/hub/pages/board.py), [dashboards/hub/app.py](../../dashboards/hub/app.py), [dashboards/hub/README.md](../../dashboards/hub/README.md)
 - [scripts/check_frontmatter.py](../../scripts/check_frontmatter.py), [tools/brain/src/brain/index_md.py](../../tools/brain/src/brain/index_md.py), [.claude/skills/repo-structure/repo_structure.py](../../.claude/skills/repo-structure/repo_structure.py)
