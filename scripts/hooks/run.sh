@@ -5,10 +5,11 @@
 dir=$(cd "$(dirname "$0")" && pwd)
 script=$1
 shift
-if command -v python3 >/dev/null 2>&1; then
-  exec python3 -I "$dir/$script" "$@"
-elif command -v python >/dev/null 2>&1; then
-  exec python -I "$dir/$script" "$@"
-fi
+# Try each name by running it: on Windows, python3 can be a Microsoft Store stub that only prints a hint.
+for py in python3 python; do
+  if "$py" -c "" >/dev/null 2>&1; then
+    exec "$py" -I "$dir/$script" "$@"
+  fi
+done
 echo "hooks: no python on this machine; $script skipped" >&2
 exit 0

@@ -34,15 +34,20 @@ No skill; interactive session, follow-up to [2026-11-02-agent-channel](2026-11-0
 ## Summary
 
 Wrote the hook script and its tests, updated `run.sh`, `AGENTS.md`, `working-with-agents.md`, the
-issue #2 body, ADR-0008 (superseded) and ADR-0009. **Needs a human:** the auto-mode classifier
-refused the agent's edit to `.claude/settings.json` (self-modification), so the two hook entries
-and the `gh issue view*` allow rule must be added by @DarkEB1 or with their explicit go-ahead.
-Until then the script exists but does not run.
+issue #2 body, ADR-0008 (superseded) and ADR-0009. The auto-mode classifier first refused the
+edit to `.claude/settings.json` as self-modification; @DarkEB1 then approved it explicitly and the
+two hook entries and the `gh issue view*` allow rule were added.
+
+Found on the way: `run.sh` picked `python3` whenever the name existed, and on this Windows host
+that is the Microsoft Store stub, which exits 49. Every hook in the repo had therefore been failing
+open on this machine (only exit 2 blocks). `run.sh` now runs each candidate before using it; after
+the fix `guard_bash.py` blocked a test command containing a force push, and both channel hooks ran.
 
 ## Files touched
 
 - [scripts/hooks/agent_channel.py](../../scripts/hooks/agent_channel.py)
 - [scripts/hooks/run.sh](../../scripts/hooks/run.sh)
+- [.claude/settings.json](../../.claude/settings.json)
 - [tests/test_hooks.py](../../tests/test_hooks.py)
 - [AGENTS.md](../../AGENTS.md)
 - [knowledge/context/working-with-agents.md](../context/working-with-agents.md)
@@ -55,7 +60,6 @@ Until then the script exists but does not run.
 
 - [scripts/hooks/guard_edit.py](../../scripts/hooks/guard_edit.py)
 - [tests/test_hooks.py](../../tests/test_hooks.py)
-- [.claude/settings.json](../../.claude/settings.json)
 - [.github/CODEOWNERS](../../.github/CODEOWNERS)
 - [research/demo/README.md](../../research/demo/README.md)
 - [knowledge/context/team.yaml](../context/team.yaml)

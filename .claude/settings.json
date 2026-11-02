@@ -22,7 +22,8 @@
       "Bash(gh pr checks*)",
       "Bash(gh run list*)",
       "Bash(gh run view*)",
-      "Bash(gh issue list*)"
+      "Bash(gh issue list*)",
+      "Bash(gh issue view*)"
     ],
     "deny": [
       "Read(./.env)",
@@ -33,6 +34,17 @@
     ]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/scripts/hooks/run.sh\" agent_channel.py inbox",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -51,6 +63,11 @@
             "type": "command",
             "command": "sh \"$CLAUDE_PROJECT_DIR/scripts/hooks/run.sh\" guard_edit.py",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/scripts/hooks/run.sh\" agent_channel.py guard",
+            "timeout": 20
           }
         ]
       }
