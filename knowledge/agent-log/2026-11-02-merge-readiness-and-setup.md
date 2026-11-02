@@ -7,7 +7,7 @@ authors: [Claude]
 owner: DarkEB1
 status: draft
 tags: [infra]
-related: [setup, 2026-11-02-review-fixes, start-here]
+related: [setup, start-here]
 ---
 
 # Merge readiness for #1 and #3, and a per-person setup checklist
@@ -21,7 +21,7 @@ what is needed to merge and to write one setup file for each person. No skill.
 
 - Ran the `reviewer` subagent over #1 and #3 together before any merge. It returned `verdict: hold`
   (Yahoo summer-time dates, `.env` guard bypass); both were fixed on #3, recorded in
-  [2026-11-02-review-fixes](2026-11-02-review-fixes.md), and the re-review returned `verdict: merge`.
+  `2026-11-02-review-fixes` (on [#3](https://github.com/DarkEB1/semi-systematic/pull/3)), and the re-review returned `verdict: merge`.
 - Did not merge: the auto-mode classifier refused `gh pr merge` twice ("merge without review"),
   also after the reviewer's merge verdict. Merging is left to @DarkEB1 as data-layer owner.
 - The setup checklist is a new context file rather than a longer README: the README keeps its
