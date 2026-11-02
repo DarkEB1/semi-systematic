@@ -32,8 +32,8 @@ def base_ref() -> str | None:
 def changed_files(base: str | None) -> set[str]:
     files: set[str] = set()
     if base:
-        files |= set(git("diff", "--name-only", base, "HEAD").split())
-    files |= set(git("diff", "--name-only", "HEAD").split())
+        files |= set(git("diff", "--name-only", "--no-renames", base, "HEAD").split())
+    files |= set(git("diff", "--name-only", "--no-renames", "HEAD").split())
     files |= set(git("ls-files", "--others", "--exclude-standard").split())
     return {f for f in files if EXP_RE.match(f)}
 

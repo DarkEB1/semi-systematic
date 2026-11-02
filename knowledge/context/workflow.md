@@ -74,7 +74,7 @@ stop condition or the budget is hit, appending every iteration to one agent-log 
 refuses to start without a budget, kills the iteration's process group when time runs out, and
 stops after an iteration changes a tracked or non-ignored file outside `allowed_paths`. These
 path checks detect changes after execution; they do not prevent writes. A
-skill may merge its own PR only when CI is green and no changed path is under CODEOWNERS; otherwise
+skill may merge its own PR only when CI is green and no changed path is under the data-layer CODEOWNERS block; otherwise
 it opens the PR and stops.
 
 ## Meetings

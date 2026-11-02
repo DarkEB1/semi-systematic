@@ -132,3 +132,12 @@ def test_partial_history_aborts_before_replacing_any_partition(s3, ingest_cfg, m
         )
     assert s3.store == original
     assert s3.puts == []
+
+
+def test_summer_time_bars_keep_their_london_date():
+    """Real BRL=X payload for 2026-07-01..08: bars are stamped 23:00 UTC the day before."""
+    bst = json.loads((Path(__file__).parent / "fixtures" / "yahoo_chart_bst.json").read_text())
+    days = yahoo.normalise(bst, "USDBRL", ingested_at=STAMP)["date"].to_pylist()
+    assert days[0] == dt.date(2026, 7, 1)
+    assert all(d.weekday() < 5 for d in days)
+    assert dt.date(2026, 7, 6) in days and dt.date(2026, 7, 5) not in days

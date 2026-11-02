@@ -42,7 +42,28 @@ Claude then reviewed the diff and finished the PR. Each new test was run against
 (`git worktree` at the previous HEAD, with `PYTHONPATH` pointing at its `src/` so the editable
 install did not mask it) and failed there: 8 in data, ingest and data health, 6 in freeze and loop.
 Gates on the fixed tree: `just check` exit 0, `just test` `108 passed`, `just eval`
-`7 skill(s), 0 failure(s)`. Known behaviour, left as designed and named in the PR:
+`7 skill(s), 0 failure(s)`.
+
+The `reviewer` subagent then reviewed #1 and #3 together and returned `verdict: hold`. Fixed on this
+branch:
+
+- Yahoo bars are dated in the exchange timezone (`meta.exchangeTimezoneName`, Europe/London for FX).
+  A live `BRL=X` fetch for 2026-07-01..08 showed every bar stamped 23:00 UTC the day before, so UTC
+  dating put Monday 6 July on Sunday 5 July and 1 July in June, and with `check_history` the nightly
+  would have refused every summer-time night. `tests/fixtures/yahoo_chart_bst.json` is that real
+  payload, trimmed. The bucket holds no `raw/yahoo/` data yet, so nothing needs migrating.
+- `guard_bash.py` blocked `cat .env` but not a path-prefixed or absolute path to it; it now matches
+  `.env` after a slash, quote or `=` too.
+- `check_frozen.py` diffs with `--no-renames`, so a renamed frozen experiment is caught.
+- "Under CODEOWNERS" in `workflow.md` and three skills now says "under the data-layer CODEOWNERS
+  block", matching `AGENTS.md`; `data-access.md` and `src/quant/AGENTS.md` name `index.yml` as the
+  writer of `curated/repo_index/`.
+
+Left for later, on the board: data health reports a dataset missing on the first business day of a
+month when one symbol has no bar in the new partition yet (it should fall back to the previous
+partition).
+
+Known behaviour, left as designed and named in the PR:
 
 - The nightly ingest stops (no write) when a symbol returns no rows or when a symbol is removed from
   the universe mid-month, because its stored rows in the current month would be lost. Both need a
@@ -70,6 +91,14 @@ Gates on the fixed tree: `just check` exit 0, `just test` `108 passed`, `just ev
 - [workflow](../context/workflow.md)
 - [agent guide](../context/working-with-agents.md)
 - [this log](2026-11-02-review-fixes.md)
+- [summer-time fixture](../../tests/fixtures/yahoo_chart_bst.json)
+- [shell guard](../../scripts/hooks/guard_bash.py)
+- [hook tests](../../tests/test_hooks.py)
+- [data access](../context/data-access.md)
+- [quant rules](../../src/quant/AGENTS.md)
+- [meeting-notes skill](../../.claude/skills/meeting-notes/SKILL.md)
+- [new-experiment skill](../../.claude/skills/new-experiment/SKILL.md)
+- [pull-data skill](../../.claude/skills/pull-data/SKILL.md)
 
 ## Files relied on
 

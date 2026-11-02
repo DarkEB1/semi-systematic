@@ -17,6 +17,7 @@ import time
 import urllib.error
 import urllib.request
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pyarrow as pa
 
@@ -87,6 +88,9 @@ def normalise(
     if not results:
         return SCHEMA.empty_table()
     r = results[0]
+    # Bars are stamped at local midnight of the exchange (FX: Europe/London), so a UTC date is a day
+    # early in summer time. The live bar carries the fetch time, which the same zone dates correctly.
+    tz = ZoneInfo((r.get("meta") or {}).get("exchangeTimezoneName") or "UTC")
     ts = r.get("timestamp") or []
     q = (r.get("indicators", {}).get("quote") or [{}])[0]
     rows: dict[str, list[Any]] = {k: [] for k in SCHEMA.names}
@@ -95,7 +99,7 @@ def normalise(
         close = (q.get("close") or [None] * len(ts))[i]
         if close is None:
             continue
-        day = dt.datetime.fromtimestamp(t, tz=dt.UTC).date()
+        day = dt.datetime.fromtimestamp(t, tz=tz).date()
         if day in seen:  # yahoo sometimes repeats the live bar
             continue
         seen.add(day)

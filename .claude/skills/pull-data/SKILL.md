@@ -46,6 +46,6 @@ the Schema table and the licence line. Eval fixture: `ai/evals/pull-data/`.
 
 ## Done when
 
-- The PR is merged (by the skill only if nothing under CODEOWNERS changed; `catalog/**` is under
+- The PR is merged (by the skill only if nothing under the data-layer CODEOWNERS block changed; `catalog/**` is under
   CODEOWNERS, so a new dataset README always waits for the data-layer owner).
 - The next nightly `ingest.yml` run is green and `just data-health` shows the dataset `ok`.

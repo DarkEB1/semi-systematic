@@ -51,5 +51,5 @@ judgement in the Verdict. The eval fixture is `ai/evals/new-experiment/`.
 
 - The experiment folder, the research-log entry and the agent-log entry are in one PR with green CI.
 - `just search "<slug>"` returns the research-log entry after `just index`.
-- The PR is merged by the skill only if no changed path is under CODEOWNERS; otherwise it is
+- The PR is merged by the skill only if no changed path is under the data-layer CODEOWNERS block; otherwise it is
   left open for the human.
