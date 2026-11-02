@@ -41,6 +41,9 @@ host (Claude Code, Codex) runs them through `sh scripts/in-container.sh <command
 
 ## Set up by hand
 
+The full per-person checklist, including the assistant side (Python for the hooks, `gh`, the agent
+channel), is [knowledge/context/setup.md](knowledge/context/setup.md). The short version:
+
 1. Install git, Docker Desktop (or Podman), and VS Code with the Dev Containers extension (or Claude Code).
 2. Clone `github.com/DarkEB1/semi-systematic` and open it in the devcontainer (VS Code: "Reopen in
    Container"; CLI: `devcontainer up --workspace-folder .`). `just setup` runs automatically.
