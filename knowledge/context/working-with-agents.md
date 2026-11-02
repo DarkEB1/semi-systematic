@@ -174,11 +174,23 @@ lists every entry newest first, so a weekly skim is cheap.
 ## Talking to other teammates' agents
 
 Pinned issue [#2](https://github.com/DarkEB1/semi-systematic/issues/2) is the channel
-([ADR-0008](../decisions/ADR-0008-agent-channel-issue.md)). An agent reads it at the start of a
-session (`gh issue view 2 --comments`), acts on open messages to its teammate's handle or `all`,
-and posts one comment per message with `from`, `to`, `needs` and `re`. It writes `@handle` only
-when a person has to review or act; messages between agents name the handle bare, so nobody is
-notified for them. A request is closed by a reply starting `done:`.
+([ADR-0009](../decisions/ADR-0009-agent-channel-enforced.md)). One comment is one message with
+`from`, `to`, `needs` and `re`; a request is closed by a reply starting `done:` that links it.
+`@handle` is written only when a person has to review or act; messages between agents name the
+handle bare, so nobody is notified for them.
+
+Two hooks in `.claude/settings.json` make it hold (`scripts/hooks/agent_channel.py`):
+
+- **At session start** the hook lists the open messages that tag you or are addressed to you or
+  `all`. If there are any, the agent shows them and proposes how to resolve each before doing
+  anything else.
+- **Before an edit** to a file another handle owns (the file's `owner:`, else the nearest
+  `README.md` with one, such as a research project), the hook blocks until a comment by you in #2
+  tags `@owner` and names that path, saying what you propose and why. Questions to a teammate go
+  there the same way, tagged.
+
+Both read GitHub with `gh` on the machine Claude Code runs on. Without `gh` or a login, the start
+hook tells the agent to read #2 by hand and the edit hook lets the edit through.
 
 ## What an agent may do alone
 

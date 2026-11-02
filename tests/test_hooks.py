@@ -24,6 +24,7 @@ def _load(name: str):
 guard_bash = _load("guard_bash")
 guard_edit = _load("guard_edit")
 format_file = _load("format_file")
+agent_channel = _load("agent_channel")
 
 
 def _run(mod, payload: dict, monkeypatch) -> int:
@@ -100,3 +101,90 @@ def test_format_file_is_a_no_op_without_a_formatter(tmp_path, monkeypatch):
         == 0
     )
     assert f.read_text(encoding="utf-8") == "x=1\n"
+
+
+URL = "https://github.com/o/r/issues/2#issuecomment-"
+
+
+def _channel(monkeypatch, me: str | None, comments: list[dict] | None) -> None:
+    def fake_gh(args, _cwd):
+        if args[:2] == ["api", "user"]:
+            return None if me is None else me + "\n"
+        return None if comments is None else json.dumps({"comments": comments})
+
+    monkeypatch.setattr(agent_channel, "gh", fake_gh)
+
+
+def _comment(n: int, who: str, body: str) -> dict:
+    return {
+        "author": {"login": who},
+        "body": body,
+        "url": f"{URL}{n}",
+        "createdAt": "2026-11-02T00:00:00Z",
+    }
+
+
+def test_inbox_lists_open_messages_only(tmp_path, monkeypatch, capsys):
+    _channel(
+        monkeypatch,
+        "me",
+        [
+            _comment(1, "ann", "from: ann\nto: me\nneeds: answer\n\nwhich snapshot?"),
+            _comment(2, "ann", "needs: review @me please look"),
+            _comment(3, "me", "done: answered issuecomment-2"),
+            _comment(4, "ann", "to: bob\nnot for me"),
+            _comment(5, "me", "to: all\nmy own broadcast"),
+            _comment(6, "bob", "to: all\nheads up"),
+        ],
+    )
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps({"cwd": str(tmp_path)})))
+    assert agent_channel.main(["inbox"]) == 0
+    out = capsys.readouterr().out
+    assert "2 open message(s) for @me" in out
+    assert f"{URL}1 " in out and f"{URL}6 " in out
+    assert all(f"{URL}{n} " not in out for n in (2, 3, 4, 5))
+    assert "propose how to resolve" in out
+
+
+def test_inbox_tells_the_agent_to_read_when_gh_fails(tmp_path, monkeypatch, capsys):
+    _channel(monkeypatch, None, None)
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps({"cwd": str(tmp_path)})))
+    assert agent_channel.main(["inbox"]) == 0
+    assert "gh issue view 2 --comments" in capsys.readouterr().out
+
+
+def _owned_project(tmp_path: Path) -> Path:
+    project = tmp_path / "research" / "p"
+    project.mkdir(parents=True)
+    (project / "README.md").write_text("---\nid: p\nowner: ann\n---\n# p\n", encoding="utf-8")
+    return project
+
+
+def _guard(monkeypatch, tmp_path: Path, rel: str) -> int:
+    payload = {"cwd": str(tmp_path), "tool_input": {"file_path": rel}}
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+    return agent_channel.main(["guard"])
+
+
+def test_guard_blocks_another_owners_work_until_tagged(tmp_path, monkeypatch, capsys):
+    _owned_project(tmp_path)
+    _channel(monkeypatch, "me", [_comment(1, "ann", "@me research/p is mine")])
+    assert _guard(monkeypatch, tmp_path, "research/p/experiments/x/run.py") == 2
+    assert "owned by @ann" in capsys.readouterr().err
+    _channel(monkeypatch, "me", [_comment(1, "me", "to: ann\n@ann I propose to fix research/p")])
+    assert _guard(monkeypatch, tmp_path, "research/p/experiments/x/run.py") == 0
+
+
+def test_guard_uses_the_files_own_owner_first(tmp_path, monkeypatch):
+    project = _owned_project(tmp_path)
+    (project / "note.md").write_text("---\nowner: me\n---\n# n\n", encoding="utf-8")
+    _channel(monkeypatch, "me", [])
+    assert _guard(monkeypatch, tmp_path, "research/p/note.md") == 0
+
+
+def test_guard_allows_unowned_files_and_unknown_user(tmp_path, monkeypatch):
+    _owned_project(tmp_path)
+    _channel(monkeypatch, "me", [])
+    assert _guard(monkeypatch, tmp_path, "src/quant/x.py") == 0
+    _channel(monkeypatch, None, None)
+    assert _guard(monkeypatch, tmp_path, "research/p/run.py") == 0

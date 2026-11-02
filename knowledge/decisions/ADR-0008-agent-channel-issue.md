@@ -5,7 +5,7 @@ title: "ADR-0008: one pinned issue is the channel between teammates' agents"
 date: 2026-11-02
 authors: [DarkEB1]
 owner: DarkEB1
-status: accepted
+status: superseded
 tags: [infra]
 related: [ADR-0005-llm-friendly-repo, ADR-0007-todos-live-on-their-own-branch, working-with-agents]
 ---
