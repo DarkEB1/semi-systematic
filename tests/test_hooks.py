@@ -5,6 +5,9 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -188,3 +191,55 @@ def test_guard_allows_unowned_files_and_unknown_user(tmp_path, monkeypatch):
     assert _guard(monkeypatch, tmp_path, "src/quant/x.py") == 0
     _channel(monkeypatch, None, None)
     assert _guard(monkeypatch, tmp_path, "research/p/run.py") == 0
+
+
+STUB = "#!/bin/sh\necho 'Python was not found'\nexit 49\n"
+
+
+def _run_sh(tmp_path: Path, stubs: list[str], code: str) -> subprocess.CompletedProcess:
+    """run.sh copied next to a one-line hook, with a PATH whose pythons are ``stubs`` or real."""
+    hooks, bin_dir = tmp_path / "hooks", tmp_path / "bin"
+    hooks.mkdir()
+    bin_dir.mkdir()
+    shutil.copy(HOOKS / "run.sh", hooks / "run.sh")
+    (hooks / "h.py").write_text(code, encoding="utf-8")
+    for name in ("python3", "python"):
+        if name in stubs:
+            (bin_dir / name).write_text(STUB, encoding="utf-8")
+            (bin_dir / name).chmod(0o755)
+        else:
+            (bin_dir / name).symlink_to(sys.executable)
+    return subprocess.run(
+        ["/bin/sh", str(hooks / "run.sh"), "h.py"],
+        input="{}",
+        capture_output=True,
+        text=True,
+        env={"PATH": f"{bin_dir}:/usr/bin:/bin"},
+    )
+
+
+needs_sh = pytest.mark.skipif(os.name == "nt", reason="run.sh is tested with a POSIX PATH")
+
+
+@needs_sh
+def test_run_sh_skips_a_python_stub(tmp_path):
+    result = _run_sh(tmp_path, ["python3"], "print('ran')")
+    assert result.returncode == 0 and "ran" in result.stdout
+
+
+@needs_sh
+def test_run_sh_passes_a_block_through(tmp_path):
+    result = _run_sh(tmp_path, [], "import sys; print('no', file=sys.stderr); sys.exit(2)")
+    assert result.returncode == 2 and "no" in result.stderr
+
+
+@needs_sh
+def test_run_sh_blocks_when_the_hook_crashes(tmp_path):
+    result = _run_sh(tmp_path, [], "raise RuntimeError('boom')")
+    assert result.returncode == 2 and "failed with exit 1" in result.stderr
+
+
+@needs_sh
+def test_run_sh_blocks_without_a_working_python(tmp_path):
+    result = _run_sh(tmp_path, ["python3", "python"], "print('ran')")
+    assert result.returncode == 2 and "no working python" in result.stderr

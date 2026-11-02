@@ -36,8 +36,11 @@ Steps, Checks before opening the PR, Done when. The runner `<name_with_underscor
 
 ## Invoking a skill
 
-**From Claude Code** (the devcontainer has it on the path): open the repo and type the skill name
-as a slash command with the inputs in words, for example
+**From Claude Code**: Claude Code is not installed in the devcontainer; it runs on your machine
+with the repo open, and runs the recipes in the container through
+`sh scripts/in-container.sh <command>` (the devcontainer CLI if installed, else `docker run` on the
+image). Codex and other assistants with a terminal work the same way. Type the skill name as a
+slash command with the inputs in words, for example
 
 ```text
 /new-experiment slug carry-reversion, hypothesis "EM currencies with the steepest carry mean-revert

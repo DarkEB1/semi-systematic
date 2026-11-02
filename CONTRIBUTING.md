@@ -68,7 +68,10 @@ recipe. The common ones:
   and hooks) enforces the zero-exception rules. Nothing in the repo asks a person to approve a step.
   If your own Claude Code is in a manual mode you will see prompts; that is your setting.
 - Hooks run on the machine where Claude Code runs, not in the devcontainer, so they need only
-  python. Format-on-edit is a no-op until `uv tool install ruff` on that machine; pre-commit and CI
+  a working Python 3 (on Windows the Microsoft Store `python3` alias does not count; `run.sh` skips
+  it). They fail closed: with no working Python, or when a hook crashes, the action is blocked with
+  the reason, never silently allowed. Recipes and commits from that machine go through
+  `sh scripts/in-container.sh <command>`. Format-on-edit is a no-op until `uv tool install ruff` on that machine; pre-commit and CI
   still enforce formatting.
 - Once a month, or after a convention change, run `/doctor prompt-audit` and fix the lines it
   reports in `AGENTS.md` and the per-folder files.

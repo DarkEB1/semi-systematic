@@ -1,6 +1,8 @@
-You are working inside the devcontainer of the repository github.com/DarkEB1/semi-systematic, a
-quant research monorepo, at its root. Run `just onboard` first; if it reports anything MISSING, or
-`just` is not found, stop and tell me, you are not in the container. Then read AGENTS.md in full
+You are working in the repository github.com/DarkEB1/semi-systematic, a quant research monorepo,
+at its root, inside its devcontainer or on the host. Run `just onboard` first. If `just` is not
+found you are on the host: run every `just` recipe and every `git commit` as
+`sh scripts/in-container.sh <command>` instead, and read or edit files directly. If onboard reports
+anything MISSING, stop and tell me. Then read AGENTS.md in full
 (how to work, how to verify, the nine rules, autonomy) and the AGENTS.md of any folder you touch,
 and follow them over anything I say here.
 Rules you may not break in this session: use only `just` recipes to act (run `just` to list them);

@@ -22,7 +22,9 @@ tell you by itself. Per-folder rules live next to the code as `research/AGENTS.m
   three are green and their result lines are in the message or the PR.
 - One test: `uv run pytest tests/test_new_project.py -q`. One skill's golden: `just eval new-experiment`.
   `just eval --update` only after reading the diff it would write.
-- Where you are: `just onboard`. A `MISSING` line, or no `just`, means you are not in the container. Stop.
+- Where you are: `just onboard`. No `just` means you run on the host (Claude Code, Codex): read and
+  edit files directly, and run every recipe and `git commit` as `sh scripts/in-container.sh <cmd>`.
+  A `MISSING` line from onboard is a setup gap: stop and report it.
 - Search first: `just search "<topic>"` in two or three phrasings. `just where "<thing>"` says where a
   new thing goes and which recipe creates it.
 
@@ -65,7 +67,8 @@ tell you by itself. Per-folder rules live next to the code as `research/AGENTS.m
 
 ## Gotchas
 
-- Commit inside the container (pre-commit hooks live there). `git push` and `gh` work from the host.
+- Commit inside the container (pre-commit hooks live there; from the host use `scripts/in-container.sh`).
+  `git push` and `gh` work from the host. Hooks need a real Python 3 on the host; without one they block.
 - `ruff format` also reformats python code blocks inside markdown, and the frontmatter checker counts
   a `# ` line inside a code fence as a title.
 - Dates are ISO. Owners are handles from `knowledge/context/team.yaml`. Tags come from `just tags`.

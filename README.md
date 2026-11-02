@@ -36,7 +36,8 @@ agents. From there: [AGENTS.md](AGENTS.md) (how to work, how to verify, the nine
 [data-access.md](knowledge/context/data-access.md) (reading and writing data),
 [working-with-agents.md](knowledge/context/working-with-agents.md) (invoking skills, loops,
 reviewing agent PRs) and [CONTRIBUTING.md](CONTRIBUTING.md) (branches, PRs, CI, conventions).
-The devcontainer is the only supported way to run anything here, by people or agents.
+Every recipe runs in the devcontainer, for people and agents alike; an assistant that runs on the
+host (Claude Code, Codex) runs them through `sh scripts/in-container.sh <command>`.
 
 ## Set up by hand
 
