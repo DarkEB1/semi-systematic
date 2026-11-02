@@ -1,0 +1,1 @@
+args: ["2026-10-29", "Eval sync", "--input", "ai/evals/meeting-notes/bullets.txt", "--owner", "DarkEB1", "--attendees", "DarkEB1", "--recording", "https://example.invalid/recording", "--next-adr", "9001", "--no-related", "--dry-run"]

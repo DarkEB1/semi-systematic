@@ -1,0 +1,6 @@
+# Team handles. Read by scripts/check_frontmatter.py (owner must be listed), quant.audit
+# (allowed scratch/<handle>/ prefixes) and the onboarding flow. Add a handle in the same PR that
+# adds knowledge/notes/<handle>/ and the CODEOWNERS line.
+handles:
+  - DarkEB1
+data_layer_owner: DarkEB1

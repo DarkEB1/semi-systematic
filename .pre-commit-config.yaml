@@ -1,0 +1,42 @@
+# All revs pinned. Bump by hand with `pre-commit autoupdate` in its own chore: PR.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+        args: ["--allow-multiple-documents"]
+      - id: check-merge-conflict
+      - id: check-toml
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: gitleaks
+        name: gitleaks (staged)
+        entry: gitleaks git --pre-commit --staged --redact --no-banner
+        language: system
+        pass_filenames: false
+      - id: frontmatter
+        name: knowledge frontmatter
+        entry: uv run python scripts/check_frontmatter.py
+        language: system
+        files: ^(knowledge/|catalog/datasets/).*\.md$
+        pass_filenames: false
+      - id: size-cap
+        name: 1 MB file cap
+        entry: uv run python scripts/check_size.py
+        language: system
+        pass_filenames: false
+      - id: env-audit
+        name: env vars listed in .env.example
+        entry: uv run python scripts/check_env.py
+        language: system
+        pass_filenames: false

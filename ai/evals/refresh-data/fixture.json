@@ -1,0 +1,9 @@
+{
+  "datasets": [
+    {"name": "prices_daily", "source": "yahoo", "cadence": "daily", "lag_days": 1, "owner": "DarkEB1",
+     "keys": ["raw/yahoo/prices_daily/year=2026/month=09/data.parquet", "raw/yahoo/prices_daily/year=2026/month=10/data.parquet"]},
+    {"name": "stale_daily", "source": "evalsrc", "cadence": "daily", "lag_days": 1, "owner": "DarkEB1",
+     "keys": ["raw/evalsrc/stale_daily/year=2026/month=07/data.parquet"]},
+    {"name": "never_daily", "source": "evalsrc", "cadence": "daily", "lag_days": 1, "owner": "DarkEB1", "keys": []}
+  ]
+}

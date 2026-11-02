@@ -1,0 +1,72 @@
+--- knowledge/meetings/2026-10-29-eval-sync.md
+---
+id: 2026-10-29-eval-sync
+type: meeting
+title: "Meeting: Eval sync"
+date: 2026-10-29
+authors: [DarkEB1]
+owner: DarkEB1
+status: draft
+tags: []
+related: [ADR-9001-switch-the-fx-source-from-yahoo-to-a-pai]
+---
+
+# Meeting: Eval sync
+
+Recording: https://example.invalid/recording
+
+## Attendees
+
+- @DarkEB1
+
+## Agenda
+
+1. data-health review
+2. next experiment
+
+## Notes
+
+- The nightly ingest was green all week.
+
+## Decisions
+
+- switch the FX source from Yahoo to a paid vendor once the budget is approved ([ADR-9001](../decisions/ADR-9001-switch-the-fx-source-from-yahoo-to-a-pai.md))
+- rename the demo experiment slug to demo-fx (minor)
+
+## Actions
+
+- [ ] draft the vendor comparison (@DarkEB1, 2026-11-15)
+- [ ] run the carry experiment (@TODO-owner, TODO-date)
+--- knowledge/decisions/ADR-9001-switch-the-fx-source-from-yahoo-to-a-pai.md
+---
+id: ADR-9001-switch-the-fx-source-from-yahoo-to-a-pai
+type: decision
+title: "ADR-9001: switch the FX source from Yahoo to a paid vendor once the budget is approved"
+date: 2026-10-29
+authors: [DarkEB1]
+owner: DarkEB1
+status: proposed
+tags: []
+related: [2026-10-29-eval-sync]
+---
+
+# ADR-9001: switch the FX source from Yahoo to a paid vendor once the budget is approved
+
+Drafted by the meeting-notes skill from [2026-10-29-eval-sync](../meetings/2026-10-29-eval-sync.md). It passed the
+ADR test because it changes: data source, money. Edit, then set `status: accepted`.
+
+## Context
+
+TODO: what forced the decision.
+
+## Decision
+
+switch the FX source from Yahoo to a paid vendor once the budget is approved
+
+## Consequences
+
+TODO.
+
+## Alternatives considered
+
+- TODO

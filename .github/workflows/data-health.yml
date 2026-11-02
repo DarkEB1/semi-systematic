@@ -1,0 +1,37 @@
+name: data-health
+
+# Nightly: latest raw partition vs expected cadence for every dataset README; opens or updates
+# one issue per stale dataset (title "data-health: <dataset>").
+
+on:
+  schedule:
+    - cron: "0 6 * * 2-6"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  data-health:
+    runs-on: ubuntu-latest
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.eu.r2.cloudflarestorage.com
+      R2_BUCKET: semi-sys-research-data
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_INGEST_KEY }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_INGEST_SECRET }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: astral-sh/setup-uv@e92bafb6253dcd438e0484186d7669ea7a8ca1cc # v6.4.3
+        with:
+          version: "0.13.6"
+          enable-cache: true
+      - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3.0.0
+        with:
+          just-version: "1.59.0"
+      - name: Sync locked environment
+        run: uv sync --frozen --all-groups
+      - name: just data-health
+        run: just data-health --issues

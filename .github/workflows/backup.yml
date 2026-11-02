@@ -1,0 +1,39 @@
+name: backup
+
+# Weekly rclone sync of raw/ and curated/ to the Backblaze B2 bucket (versioned).
+# Skips with a notice until B2_KEY_ID / B2_APPLICATION_KEY / B2_BUCKET secrets exist (ADR-0001 TODO).
+
+on:
+  schedule:
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.eu.r2.cloudflarestorage.com
+      R2_BUCKET: semi-sys-research-data
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_INGEST_KEY }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_INGEST_SECRET }}
+      B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+      B2_APPLICATION_KEY: ${{ secrets.B2_APPLICATION_KEY }}
+      B2_BUCKET: ${{ secrets.B2_BUCKET }}
+      RCLONE_VERSION: "1.75.2"
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3.0.0
+        with:
+          just-version: "1.59.0"
+      - name: Install rclone (pinned)
+        run: |
+          set -euo pipefail
+          curl -fsSL -o rclone.zip "https://downloads.rclone.org/v${RCLONE_VERSION}/rclone-v${RCLONE_VERSION}-linux-amd64.zip"
+          unzip -q -j rclone.zip "*/rclone" -d .
+          sudo mv rclone /usr/local/bin/rclone && rclone version | head -1
+      - name: just backup
+        run: just backup

@@ -1,0 +1,4 @@
+"ingest module" goes to:
+  where: src/quant/ingest/<source>.py + catalog/datasets/<dataset>.md + a view in catalog/catalog.sql + tests/test_ingest_<source>.py
+  rule:  raw/ is written only by ingest.yml; a laptop writes scratch/<handle>/
+  how:   pull-data skill: just scaffold-source <source>

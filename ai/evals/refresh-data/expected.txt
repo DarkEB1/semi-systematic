@@ -1,0 +1,9 @@
+dataset              source   status   latest     expected   behind  owner
+--------------------------------------------------------------------------
+prices_daily         yahoo    stale    2026-10-01 2026-10-28     27  DarkEB1
+stale_daily          evalsrc  stale    2026-07-01 2026-10-28    119  DarkEB1
+never_daily          evalsrc  missing  -          2026-10-28      -  DarkEB1
+
+refresh: prices_daily is stale -> just ingest yahoo --since 2026-10-01
+refresh: stale_daily is stale -> just ingest evalsrc --since 2026-07-01
+refresh: never_daily is missing -> just ingest evalsrc --since 2025-09-24

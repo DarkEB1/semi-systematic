@@ -1,0 +1,7 @@
+agenda: data-health review
+agenda: next experiment
+The nightly ingest was green all week.
+decision: switch the FX source from Yahoo to a paid vendor once the budget is approved
+decision: rename the demo experiment slug to demo-fx
+action: draft the vendor comparison @DarkEB1 2026-11-15
+action: run the carry experiment
