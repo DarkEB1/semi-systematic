@@ -111,6 +111,24 @@ def normalise(
     return pa.Table.from_pydict(rows, schema=SCHEMA)
 
 
+def check_history(table: pa.Table, since: dt.date, *, client: Any, cfg: data.Settings) -> None:
+    """Refuse a replacement that loses stored symbol/date rows, before writing any partition."""
+    prefix = f"{data.RAW}{SOURCE}/{DATASETS[0]}/"
+    first = data.partition_key(prefix.rstrip("/"), year=since.year, month=since.month) + "/"
+    incoming = set(zip(table["symbol"].to_pylist(), table["date"].to_pylist(), strict=True))
+    for obj in data.list_keys(prefix, client=client, cfg=cfg):
+        key = obj["Key"]
+        if key < first or not key.endswith("/data.parquet"):
+            continue
+        old = data.read_parquet(key, client=client, cfg=cfg)
+        previous = set(zip(old["symbol"].to_pylist(), old["date"].to_pylist(), strict=True))
+        missing = previous - incoming
+        if missing:
+            raise ValueError(
+                f"yahoo: incomplete replacement for {key}: {len(missing)} stored rows missing"
+            )
+
+
 def run(
     since: dt.date | None = None,
     *,
@@ -126,8 +144,21 @@ def run(
     tables = []
     for row in symbols or universe():
         payload = fetch(row["yahoo_symbol"], since, today)
-        tables.append(normalise(payload, row["symbol"]))
+        normalised = normalise(payload, row["symbol"])
+        if not normalised.num_rows:
+            raise ValueError(f"yahoo: empty response for {row['symbol']}; no partitions written")
+        tables.append(normalised)
     table = pa.concat_tables(tables) if tables else SCHEMA.empty_table()
+    cfg = data.settings(write=True)
+    if cfg.role == "ingest":
+        client = client or data.s3_client(write=True)
+        check_history(table, since, client=client, cfg=cfg)
     return _base.write_partitions(
-        table, source=SOURCE, dataset=DATASETS[0], cadence=CADENCE, dry_run=dry_run, client=client
+        table,
+        source=SOURCE,
+        dataset=DATASETS[0],
+        cadence=CADENCE,
+        dry_run=dry_run,
+        client=client,
+        cfg=cfg,
     )

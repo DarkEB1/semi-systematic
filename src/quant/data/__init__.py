@@ -263,9 +263,8 @@ def read_parquet(key: str, *, client: Any = None, cfg: Settings | None = None) -
 def _catalog_statements(bucket: str) -> list[str]:
     sql = CATALOG_SQL.read_text(encoding="utf-8")
     sql = sql.replace("{bucket}", bucket).replace("{repo}", REPO_ROOT.as_posix())
-    return [
-        s.strip() for s in re.split(r";\s*\n", sql) if s.strip() and not s.strip().startswith("--")
-    ]
+    sql = re.sub(r"^\s*--[^\n]*", "", sql, flags=re.M)
+    return [s.strip() for s in re.split(r";\s*\n", sql) if s.strip()]
 
 
 def connect(*, strict: bool = False, views: bool = True) -> Any:

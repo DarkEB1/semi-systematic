@@ -39,10 +39,7 @@ def changed_files(base: str | None) -> set[str]:
 
 
 def status_at(base: str | None, results_path: str) -> str | None:
-    text = git("show", f"{base}:{results_path}") if base else ""
-    if not text:
-        p = ROOT / results_path
-        text = p.read_text(encoding="utf-8") if p.exists() else ""
+    text = git("show", f"{base or 'HEAD'}:{results_path}")
     m = re.search(r"^status:\s*([a-z-]+)\s*$", text, flags=re.M)
     return m.group(1) if m else None
 

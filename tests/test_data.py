@@ -12,6 +12,17 @@ from quant import data
 TABLE = pa.table({"date": [dt.date(2026, 10, 1)], "symbol": ["USDBRL"], "close": [5.35]})
 
 
+def test_catalog_keeps_commented_views_and_executes_reference_view():
+    import duckdb
+
+    statements = data._catalog_statements("test-bucket")
+    assert len(statements) == 4
+    assert all("CREATE OR REPLACE VIEW" in stmt for stmt in statements)
+    with duckdb.connect() as con:
+        con.execute(next(stmt for stmt in statements if "VIEW ref_universe" in stmt))
+        assert con.execute("SELECT count(*) FROM ref_universe").fetchone()[0] > 0
+
+
 # --- write_once ---------------------------------------------------------------
 
 

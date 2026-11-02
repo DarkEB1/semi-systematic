@@ -105,3 +105,30 @@ def test_universe_has_yahoo_symbols():
     rows = yahoo.universe()
     assert {"symbol", "yahoo_symbol", "asset_class"} <= set(rows[0])
     assert any(r["symbol"] == "USDBRL" for r in rows)
+
+
+def test_empty_symbol_aborts_before_any_writes(s3, ingest_cfg, monkeypatch):
+    monkeypatch.setattr(data, "settings", lambda **_k: ingest_cfg)
+    monkeypatch.setattr(yahoo, "fetch", lambda symbol, *_: FIXTURE if symbol == "A" else {})
+    with pytest.raises(ValueError, match="empty response for B"):
+        yahoo.run(symbols=[{"symbol": s, "yahoo_symbol": s} for s in ["A", "B"]], client=s3)
+    assert s3.puts == []
+
+
+@pytest.mark.parametrize("keep", [[0, 2], [0, 1]])
+def test_partial_history_aborts_before_replacing_any_partition(s3, ingest_cfg, monkeypatch, keep):
+    full = yahoo.normalise(FIXTURE, "USDBRL", ingested_at=STAMP)
+    _base.write_partitions(
+        full, source="yahoo", dataset="prices_daily", cadence="daily", client=s3, cfg=ingest_cfg
+    )
+    original = dict(s3.store)
+    s3.puts.clear()
+    monkeypatch.setattr(data, "settings", lambda **_k: ingest_cfg)
+    monkeypatch.setattr(yahoo, "fetch", lambda *_: FIXTURE)
+    monkeypatch.setattr(yahoo, "normalise", lambda *_: full.take(keep))
+    with pytest.raises(ValueError, match="stored rows missing"):
+        yahoo.run(
+            dt.date(2026, 9, 1), symbols=[{"symbol": "USDBRL", "yahoo_symbol": "BRL=X"}], client=s3
+        )
+    assert s3.store == original
+    assert s3.puts == []
