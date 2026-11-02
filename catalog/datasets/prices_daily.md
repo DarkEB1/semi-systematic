@@ -24,7 +24,9 @@ once promoted. Views: `yahoo_prices_daily` (raw) and `prices_daily` (curated).
 
 Fetched by `src/quant/ingest/yahoo.py` for each `yahoo_symbol` in the universe. The ingest
 re-fetches from the first day of the earliest affected month and rewrites those monthly
-partitions whole, so a partition is never half-updated.
+partitions whole. Before any write, empty symbol responses and replacements missing any stored
+symbol/date row in the requested months are rejected. Vendor corrections to values are allowed;
+removing historical rows requires investigation instead of silently accepting a shorter response.
 
 ## Cadence
 
@@ -33,6 +35,9 @@ partitions whole, so a partition is never half-updated.
 
 Business days. The nightly ingest runs at 01:30 UTC Tuesday to Saturday, so by Saturday morning the
 dataset is expected through Friday. Weekend rows are absent, not null.
+
+Data health checks the latest date of every expected Yahoo universe symbol in the latest
+partition and reports the least-current one. An absent symbol or unreadable partition is missing.
 
 ## Schema
 

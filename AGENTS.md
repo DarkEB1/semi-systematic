@@ -53,7 +53,8 @@ tell you by itself. Per-folder rules live next to the code as `research/AGENTS.m
   data-layer CODEOWNERS block (`src/quant/data/**`, `catalog/**`, `promote/**`, `.github/**`).
   Otherwise it opens the PR and stops.
 - Loops need a budget: `just task SLUG`, then `just loop SLUG`. The runner refuses to start without
-  `max_iterations`, `max_hours` and `allowed_paths`, and stops on a write outside them.
+  `max_iterations`, `max_hours` and `allowed_paths`. It kills timed-out process groups and checks
+  tracked/non-ignored file changes after each iteration; path checks are detection, not a sandbox.
 - Permissions are judged by Claude, not by people. Sessions run in auto mode, `.claude/settings.json`
   denies the few zero-exception actions (reading `.env`, `--no-verify`, force pushes, hand edits to
   frozen experiments) and the Stop hook asks for evidence. Nothing here waits for a person to click.

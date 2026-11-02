@@ -17,6 +17,7 @@ import time
 import urllib.error
 import urllib.request
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pyarrow as pa
 
@@ -87,6 +88,9 @@ def normalise(
     if not results:
         return SCHEMA.empty_table()
     r = results[0]
+    # Bars are stamped at local midnight of the exchange (FX: Europe/London), so a UTC date is a day
+    # early in summer time. The live bar carries the fetch time, which the same zone dates correctly.
+    tz = ZoneInfo((r.get("meta") or {}).get("exchangeTimezoneName") or "UTC")
     ts = r.get("timestamp") or []
     q = (r.get("indicators", {}).get("quote") or [{}])[0]
     rows: dict[str, list[Any]] = {k: [] for k in SCHEMA.names}
@@ -95,7 +99,7 @@ def normalise(
         close = (q.get("close") or [None] * len(ts))[i]
         if close is None:
             continue
-        day = dt.datetime.fromtimestamp(t, tz=dt.UTC).date()
+        day = dt.datetime.fromtimestamp(t, tz=tz).date()
         if day in seen:  # yahoo sometimes repeats the live bar
             continue
         seen.add(day)
@@ -109,6 +113,24 @@ def normalise(
         rows["source"].append(SOURCE)
         rows["ingested_at"].append(ingested_at)
     return pa.Table.from_pydict(rows, schema=SCHEMA)
+
+
+def check_history(table: pa.Table, since: dt.date, *, client: Any, cfg: data.Settings) -> None:
+    """Refuse a replacement that loses stored symbol/date rows, before writing any partition."""
+    prefix = f"{data.RAW}{SOURCE}/{DATASETS[0]}/"
+    first = data.partition_key(prefix.rstrip("/"), year=since.year, month=since.month) + "/"
+    incoming = set(zip(table["symbol"].to_pylist(), table["date"].to_pylist(), strict=True))
+    for obj in data.list_keys(prefix, client=client, cfg=cfg):
+        key = obj["Key"]
+        if key < first or not key.endswith("/data.parquet"):
+            continue
+        old = data.read_parquet(key, client=client, cfg=cfg)
+        previous = set(zip(old["symbol"].to_pylist(), old["date"].to_pylist(), strict=True))
+        missing = previous - incoming
+        if missing:
+            raise ValueError(
+                f"yahoo: incomplete replacement for {key}: {len(missing)} stored rows missing"
+            )
 
 
 def run(
@@ -126,8 +148,21 @@ def run(
     tables = []
     for row in symbols or universe():
         payload = fetch(row["yahoo_symbol"], since, today)
-        tables.append(normalise(payload, row["symbol"]))
+        normalised = normalise(payload, row["symbol"])
+        if not normalised.num_rows:
+            raise ValueError(f"yahoo: empty response for {row['symbol']}; no partitions written")
+        tables.append(normalised)
     table = pa.concat_tables(tables) if tables else SCHEMA.empty_table()
+    cfg = data.settings(write=True)
+    if cfg.role == "ingest":
+        client = client or data.s3_client(write=True)
+        check_history(table, since, client=client, cfg=cfg)
     return _base.write_partitions(
-        table, source=SOURCE, dataset=DATASETS[0], cadence=CADENCE, dry_run=dry_run, client=client
+        table,
+        source=SOURCE,
+        dataset=DATASETS[0],
+        cadence=CADENCE,
+        dry_run=dry_run,
+        client=client,
+        cfg=cfg,
     )

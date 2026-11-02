@@ -71,8 +71,10 @@ An agent gets the same tools and the same rules, plus a budget. `just task sweep
 `ai/tasks/sweep-lookbacks.yaml` with a goal, a metric, `max_iterations`, `max_hours`,
 stop conditions and `allowed_paths`. `just loop sweep-lookbacks` re-invokes the named skill until a
 stop condition or the budget is hit, appending every iteration to one agent-log entry. The runner
-refuses to start without a budget and stops the moment a file lands outside `allowed_paths`. A
-skill may merge its own PR only when CI is green and no changed path is under CODEOWNERS; otherwise
+refuses to start without a budget, kills the iteration's process group when time runs out, and
+stops after an iteration changes a tracked or non-ignored file outside `allowed_paths`. These
+path checks detect changes after execution; they do not prevent writes. A
+skill may merge its own PR only when CI is green and no changed path is under the data-layer CODEOWNERS block; otherwise
 it opens the PR and stops.
 
 ## Meetings

@@ -3,7 +3,7 @@
 The data layer. Rules beyond the root `AGENTS.md`:
 
 - Bucket prefixes: `raw/` is written only by `ingest.yml` (a partition may be overwritten in
-  place), `curated/` only by `promote.yml` (append-only, schema contract from the dataset README),
+  place), `curated/` only by `promote.yml` and, for `curated/repo_index/`, `index.yml` (append-only, schema contract from the dataset README),
   `scratch/<handle>/` by everyone else. `write_once` enforces this; never add a bypass or a default.
 - Imports: the base dependency group only (ruff bans the `ml` extra here), third-party packages and
   tools. Never research, dashboards or scripts.

@@ -17,6 +17,10 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
+import math
+import os
+import signal
 import subprocess
 import sys
 import time
@@ -50,7 +54,8 @@ def load_task(slug: str) -> dict:
     task = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     budget = task.get("budget") or {}
     if not (
-        int(budget.get("max_iterations", 0) or 0) > 0 and float(budget.get("max_hours", 0) or 0) > 0
+        int(budget.get("max_iterations", 0) or 0) > 0
+        and 0 < float(budget.get("max_hours", 0) or 0) < math.inf
     ):
         raise LoopError(
             "refusing to start: budget.max_iterations and budget.max_hours must both be > 0"
@@ -67,25 +72,32 @@ def load_task(slug: str) -> dict:
     return task
 
 
-def git_status() -> set[str]:
+def file_snapshot() -> dict[str, tuple[str, int]]:
+    """Content and mode of tracked and non-ignored files, including already-dirty files."""
     out = subprocess.run(
-        ["git", "status", "--porcelain", "-uall"],
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
         cwd=ROOT,
         capture_output=True,
         text=True,
-        check=False,
+        check=True,
     ).stdout
-    files = set()
-    for ln in out.splitlines():
-        path = ln[3:].strip()
-        if " -> " in path:
-            path = path.split(" -> ", 1)[1]
-        files.add(path.strip('"'))
+    files = {}
+    for rel in set(out.split("\0")) - {""}:
+        path = ROOT / rel
+        if path.is_symlink():
+            content = os.fsencode(os.readlink(path))
+        elif path.is_file():
+            content = path.read_bytes()
+        else:
+            continue
+        files[rel] = (hashlib.sha256(content).hexdigest(), path.lstat().st_mode)
     return files
 
 
 def under_allowed(path: str, allowed: list[str], log_rel: str) -> bool:
-    return path == log_rel or any(path.startswith(a) for a in allowed)
+    return path == log_rel or any(
+        path == a.rstrip("/") or path.startswith(a.rstrip("/") + "/") for a in allowed
+    )
 
 
 def substitute(args: list[str], slug: str, i: int) -> list[str]:
@@ -126,9 +138,26 @@ def iteration_command(task: dict, slug: str, i: int) -> list[str]:
     ]
 
 
-def run_iteration(task: dict, slug: str, i: int) -> subprocess.CompletedProcess:
+def run_iteration(task: dict, slug: str, i: int, timeout: float) -> subprocess.CompletedProcess:
+    """Run in a process group so the remaining wall-clock budget also stops child processes."""
     cmd = iteration_command(task, slug, i)
-    return subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, check=False)
+    with subprocess.Popen(
+        cmd,
+        cwd=ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    ) as proc:
+        try:
+            stdout, stderr = proc.communicate(timeout=max(0, timeout))
+        except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, signal.SIGKILL)
+            stdout, stderr = proc.communicate()
+            return subprocess.CompletedProcess(
+                cmd, 124, stdout, stderr + "\nbudget: max_hours reached"
+            )
+        return subprocess.CompletedProcess(cmd, proc.returncode, stdout, stderr)
 
 
 def stop_hit(conditions: list[str], stdout: str) -> str | None:
@@ -234,9 +263,10 @@ def main(argv: list[str] | None = None) -> int:
         if elapsed_h >= max_hours:
             stop_reason = f"budget: max_hours ({max_hours}) reached before iteration {i}"
             break
-        before = git_status()
-        res = run_iteration(task, a.slug, i)
-        changed = sorted(git_status() - before | {f for f in git_status() if f not in before})
+        before = file_snapshot()
+        res = run_iteration(task, a.slug, i, max_hours * 3600 - (time.monotonic() - started))
+        after = file_snapshot()
+        changed = sorted(f for f in before.keys() | after.keys() if before.get(f) != after.get(f))
         violations = [c for c in changed if not under_allowed(c, task["allowed_paths"], log.rel)]
         log.touched |= set(changed)
         tail = (res.stdout.strip().splitlines() or ["(no output)"])[-5:]

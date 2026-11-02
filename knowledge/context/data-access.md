@@ -22,7 +22,7 @@ is the examples; the signatures are in `src/quant/data/__init__.py` and the rule
 | prefix | written by | overwrite | layout |
 |---|---|---|---|
 | `raw/<source>/<dataset>/` | `ingest.yml` only (`QUANT_ROLE=ingest`) | a partition may be rewritten whole | daily `year=YYYY/month=MM/data.parquet`; intraday `date=YYYY-MM-DD/<asset_class>.parquet` |
-| `curated/<name>/` | `promote.yml` only (`QUANT_ROLE=promote`) | never | `snapshot=YYYY-MM-DD/data.parquet` plus `README.md`, matching the Schema table in `catalog/datasets/<name>.md` |
+| `curated/<name>/` | `promote.yml`, and `index.yml` for `curated/repo_index/` (both `QUANT_ROLE=promote`) | never | `snapshot=YYYY-MM-DD/data.parquet` plus `README.md`, matching the Schema table in `catalog/datasets/<name>.md` |
 | `scratch/<handle>/` | you, with your `<handle>-scratch` key | never (write-once) | anything; `just ingest` from a laptop mirrors to `scratch/<handle>/raw/...` with a `run=` stamp |
 
 A laptop has the team-read key (reads everything) and a personal scratch key (writes one prefix).

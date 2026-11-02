@@ -46,5 +46,5 @@ test's verdicts. Eval fixture: `ai/evals/meeting-notes/`.
 
 ## Done when
 
-- The meeting file and any ADRs are merged (the skill may merge if nothing under CODEOWNERS
+- The meeting file and any ADRs are merged (the skill may merge if nothing under the data-layer CODEOWNERS block
   changed), `just index` has run, and `just search "<title>"` returns the meeting.

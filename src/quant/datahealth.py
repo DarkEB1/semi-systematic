@@ -17,6 +17,7 @@ from typing import Any
 
 from quant import data
 from quant.datasets import DatasetDoc, dataset_docs
+from quant.ingest.yahoo import universe
 
 _PART = re.compile(
     r"(?:year=(\d{4})/month=(\d{2})|date=(\d{4}-\d{2}-\d{2})|snapshot=(\d{4}-\d{2}-\d{2}))"
@@ -62,16 +63,31 @@ def latest_partition(keys: list[dict[str, Any]]) -> tuple[dt.date | None, str | 
     return (best[0], best[1]) if best else (None, None)
 
 
-def max_date_in(key: str, *, con: Any = None, cfg: data.Settings | None = None) -> dt.date | None:
-    """For a monthly partition, the true latest day comes from the file itself."""
+def max_date_in(
+    key: str,
+    *,
+    con: Any = None,
+    cfg: data.Settings | None = None,
+    symbols: list[str] | None = None,
+) -> dt.date | None:
+    """Latest day, or the least-current expected symbol's latest day; None means incomplete."""
     cfg = cfg or data.settings()
     con = con or data.connect(views=False)
     try:
+        if symbols is not None:
+            rows = con.execute(
+                "SELECT symbol, max(date) FROM read_parquet(?) GROUP BY symbol",
+                [f"s3://{cfg.bucket}/{key}"],
+            ).fetchall()
+            dates = dict(rows)
+            if not symbols or any(dates.get(symbol) is None for symbol in symbols):
+                return None
+            return min(dates[symbol] for symbol in symbols)
         row = con.execute(
             "SELECT max(date) FROM read_parquet(?)", [f"s3://{cfg.bucket}/{key}"]
         ).fetchone()
         return row[0] if row and row[0] else None
-    except Exception:  # noqa: BLE001 - a file without a date column is reported as its partition
+    except Exception:  # noqa: BLE001 - unreadable coverage must not report healthy
         return None
 
 
@@ -86,7 +102,11 @@ def assess(
 ) -> Health:
     expected = last_business_day(today, doc.lag_days)
     part, key = latest_partition(keys)
-    if part is None:
+    latest = part
+    if doc.cadence == "daily" and key and probe:
+        symbols = [r["symbol"] for r in universe()] if doc.source == "yahoo" else None
+        latest = max_date_in(key, con=con, cfg=cfg, symbols=symbols)
+    if latest is None:
         return Health(
             doc.name,
             doc.source,
@@ -98,9 +118,6 @@ def assess(
             "missing",
             None,
         )
-    latest = part
-    if doc.cadence == "daily" and key and probe:
-        latest = max_date_in(key, con=con, cfg=cfg) or part
     behind = (expected - latest).days
     status = "ok" if behind <= 0 else "stale"
     return Health(

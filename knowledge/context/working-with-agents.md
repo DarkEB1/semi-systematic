@@ -110,10 +110,15 @@ Edit it before running: raise the budget deliberately, add stop conditions
 (`stdout_contains:<text>` or `file_exists:<path>`), and keep `allowed_paths` as narrow as the
 job. `{slug}` and `{i}` (1-based iteration) are substituted into `args`.
 
-`just loop sweep-lookbacks` then, per iteration: records `git status`, runs the skill's runner
-with the args, lists the files that changed, stops if any is outside `allowed_paths` (files are
-left in place, nothing reverted), stops on a non-zero exit or a stop condition, and otherwise
-continues until `max_iterations` or `max_hours`. Every iteration is appended to one file,
+`just loop sweep-lookbacks` records the contents and modes of tracked and non-ignored files
+before and after each iteration. It detects further edits to already-dirty files and changes
+that the iteration commits. It stops if a changed path is outside `allowed_paths` (files are
+left in place, nothing reverted), on a non-zero exit, or on a stop condition. The remaining
+`max_hours` budget limits the running subprocess; expiry kills its process group, including
+children, and records a failure. Paths match whole files or directories, not sibling prefixes.
+
+Path checks run after execution. They are not a sandbox: ignored files, writes outside the
+checkout, and changes reverted before the check are not covered. Every iteration is appended to one file,
 `knowledge/agent-log/<date>-loop-<slug>.md`, titled "Loop <slug>: <skill> x<iterations>", which
 looks like this (from [the demo in the repo](../agent-log/2026-10-29-loop-demo.md)):
 

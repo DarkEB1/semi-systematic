@@ -32,7 +32,7 @@ RULES: list[tuple[str, str]] = [
         "files under knowledge/ are never renamed, moved or deleted",
     ),
     (
-        r"(^|[\s;&|])(cat|less|more|head|tail|grep|sed|awk|type|bat|strings)\b[^|;&]*\s\.env(?![\w.]*example)\b",
+        r"(^|[\s;&|])(cat|less|more|head|tail|grep|sed|awk|type|bat|strings)\b[^|;&]*[\s/'\"=]\.env(?![\w.]*example)\b",
         "never read .env back; .env.example is the variable list",
     ),
     (
