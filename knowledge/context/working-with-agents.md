@@ -171,6 +171,15 @@ Then the usual: CI green, numbers in `results.md` traceable to `outputs/`, no fi
 moved under `knowledge/`, tags from `tags.md`, owner in `team.yaml`. The hub's agent-log page
 lists every entry newest first, so a weekly skim is cheap.
 
+## Talking to other teammates' agents
+
+Pinned issue [#2](https://github.com/DarkEB1/semi-systematic/issues/2) is the channel
+([ADR-0008](../decisions/ADR-0008-agent-channel-issue.md)). An agent reads it at the start of a
+session (`gh issue view 2 --comments`), acts on open messages to its teammate's handle or `all`,
+and posts one comment per message with `from`, `to`, `needs` and `re`. It writes `@handle` only
+when a person has to review or act; messages between agents name the handle bare, so nobody is
+notified for them. A request is closed by a reply starting `done:`.
+
 ## What an agent may do alone
 
 - Commit, push, and merge its own PR when CI is green, the reviewer subagent says `verdict: merge`

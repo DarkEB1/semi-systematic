@@ -57,6 +57,8 @@ tell you by itself. Per-folder rules live next to the code as `research/AGENTS.m
   frozen experiments) and the Stop hook asks for evidence. Nothing here waits for a person to click.
 - Secrets: `.env` is gitignored and never read back; `.env.example` lists every variable; CI uses
   repository secrets. No chat notifications; issues and PRs are the channels.
+- Agents talk to each other in pinned issue #2 (ADR-0008): read it with `gh issue view 2 --comments`
+  at session start, post in the format its body gives, and write `@handle` only when a person must act.
 
 ## Gotchas
 
