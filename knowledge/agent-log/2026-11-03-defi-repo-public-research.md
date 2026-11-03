@@ -137,4 +137,4 @@ External primary sources: [ECB WP3280](https://www.ecb.europa.eu/pub/pdf/scpwps/
 
 ## PR
 
-Pending creation after final checks. The PR touches the data-layer CODEOWNERS block and is not self-merged. The [promote-dataset skill](../../.claude/skills/promote-dataset/SKILL.md) requires: "this skill never merges its own PR"; [src/quant/AGENTS.md](../../src/quant/AGENTS.md) says a data-layer PR "waits for the data-layer owner".
+[PR #10](https://github.com/DarkEB1/semi-systematic/pull/10). The research commit was rebased onto current main to exclude the already-merged host-container documentation branch. All pre-commit hooks passed after the manifest's final-newline correction. The PR touches the data-layer CODEOWNERS block and is not self-merged. The [promote-dataset skill](../../.claude/skills/promote-dataset/SKILL.md) requires: "this skill never merges its own PR"; [src/quant/AGENTS.md](../../src/quant/AGENTS.md) says a data-layer PR "waits for the data-layer owner".
