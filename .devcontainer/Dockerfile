@@ -1,6 +1,6 @@
 # The only supported runtime for this repo, for people and agents alike.
 # Every tool version is pinned here. Dependabot (docker ecosystem) proposes base-image bumps.
-FROM python:3.12.16-slim-bookworm
+FROM python:3.15.0-slim-bookworm
 
 ARG UV_VERSION=0.13.6
 ARG JUST_VERSION=1.59.0
