@@ -102,6 +102,14 @@ container terminal, type the command as is. `git push` and `gh` run on the host.
   edit hook blocks until it has. Questions to a teammate go there too.
 - **Board**: `sh scripts/in-container.sh just todo --list`. A card you create or move is committed
   on the `todos` branch; if the push from the container fails, run `git push origin todos` on the host.
+  The `.todos/` worktree was created in the container, so its git metadata points at
+  `/workspaces/...`: run `git -C .todos` and `just todo` only through the container, and never run
+  `git worktree prune` on the host (it drops the worktree).
+- **Dashboard**: `sh scripts/in-container.sh` publishes no ports, so `just dashboard` through it is
+  unreachable from your browser. Use VS Code "Reopen in Container", or run it detached with the port
+  published, the same mounts as `scripts/in-container.sh`, and stop it with `docker stop semi-dash`:
+  `MSYS_NO_PATHCONV=1 docker run -d --rm --name semi-dash --env-file=.env -p 2718:2718 -v "$(pwd -W 2>/dev/null || pwd):/workspaces/semi-systematic" -v semi-systematic-venv:/opt/venv -v semi-systematic-uv-cache:/root/.cache/uv -w /workspaces/semi-systematic semi-sys-dev just dashboard`,
+  then open `http://localhost:2718`.
 - **Work**: a branch per change, `just check` and `just test` green, a PR. Every agent task ends with
   an agent-log entry. Never write `raw/` or `curated/`; your data goes in `scratch/<handle>/`.
 
@@ -113,6 +121,8 @@ container terminal, type the command as is. `git push` and `gh` run on the host.
 | `Cannot connect to the Docker daemon` | Docker Desktop is stopped | start it, wait for `docker info`, retry |
 | `just: command not found` | you ran a recipe on the host | prefix it with `sh scripts/in-container.sh` |
 | `pre-commit not found` on commit | you committed on the host | commit through `sh scripts/in-container.sh git commit ...` |
+| `fatal: not a git repository: /workspaces/semi-systematic/.git/worktrees/-todos` | you ran a board command on the host | run it through `sh scripts/in-container.sh` |
+| `just dashboard` runs but `localhost:2718` does not load | `in-container.sh` publishes no ports | use the `docker run -p 2718:2718` command under Dashboard above |
 | `MISSING` for an `R2_` variable | `.env` is incomplete | step 3 |
 | `SignatureDoesNotMatch`, `InvalidAccessKeyId`, 403 | a key has a stray space, or the endpoint lacks the account id or `.eu.` | fix the line in `.env` |
 | `blocked by scripts/hooks/agent_channel.py` | the file is someone else's | post in #2 tagging them, as the message says, then retry |
