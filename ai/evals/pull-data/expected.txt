@@ -169,4 +169,4 @@ SELECT * FROM read_parquet('s3://{bucket}/raw/evalsrc/evalsrc_daily/*/*/*.parque
 + from quant.ingest import evalsrc
 +     evalsrc.SOURCE: evalsrc,
 --- patch .github/workflows/ingest.yml
-+         source: [yahoo, evalsrc]
++         source: [yahoo, nyfed, aave_archive, evalsrc]

@@ -61,6 +61,13 @@ promotion, not the last bar ([conventions](conventions.md)).
 
 ## Write to scratch
 
+Before promotion, `load(config)` also accepts an explicit `scratch_key` and `sha256` alongside
+`name` and `snapshot`. The key must contain `/snapshot=YYYY-MM-DD/` matching the declared date.
+It reads exactly one Parquet object, verifies its serialized SHA-256 and catalog schema, and
+never falls back from a missing curated snapshot. This date denotes acquisition, not promotion.
+See [ADR-0011](../decisions/ADR-0011-pinned-scratch-experiment-inputs.md). Scratch can expire;
+resolve retention before freezing a final experiment.
+
 ```python
 import pyarrow as pa
 from quant import data

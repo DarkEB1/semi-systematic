@@ -1,0 +1,26 @@
+[
+  {
+    "effectiveDate": "2026-01-30",
+    "type": "SOFR",
+    "percentRate": 3.68,
+    "percentPercentile1": 3.64,
+    "percentPercentile25": 3.66,
+    "percentPercentile75": 3.76,
+    "percentPercentile99": 3.78,
+    "volumeInBillions": 3275,
+    "revisionIndicator": ""
+  },
+  {
+    "effectiveDate": "2026-01-30",
+    "type": "EFFR",
+    "percentRate": 3.64,
+    "percentPercentile1": 3.6,
+    "percentPercentile25": 3.63,
+    "percentPercentile75": 3.64,
+    "percentPercentile99": 3.68,
+    "targetRateFrom": 3.5,
+    "targetRateTo": 3.75,
+    "volumeInBillions": 101,
+    "revisionIndicator": ""
+  }
+]
