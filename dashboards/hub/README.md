@@ -11,7 +11,10 @@ $ just dashboard
 ```
 
 Then open `http://localhost:2718`. In VS Code the port is forwarded automatically; with the
-devcontainer CLI add `--publish 2718:2718` or use the forwarded port the CLI prints. The page
+devcontainer CLI add `--publish 2718:2718` or use the forwarded port the CLI prints. From a host
+terminal through `scripts/in-container.sh` no port is published, so the page will not load; use the
+detached `docker run -p 2718:2718` command under "Dashboard" in
+[setup](../../knowledge/context/setup.md#every-day). The page
 dropdown at the top switches pages; the filter boxes (owner, tag, dataset, status, search) are
 shared across pages and each page reads the ones it understands.
 
