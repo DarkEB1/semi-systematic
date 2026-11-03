@@ -1,0 +1,7 @@
+name: usd_reference_rates
+scratch_key: scratch/DarkEB1/defi-repo/usd_reference_rates/snapshot=2026-11-03/data.parquet
+snapshot: '2026-11-03'
+requested_by: DarkEB1
+date: '2026-11-03'
+notes: Bounded official SOFR/EFFR current-vintage history; attribution and publication
+  timing caveats in dataset contract. Retention request only; owner review required.
