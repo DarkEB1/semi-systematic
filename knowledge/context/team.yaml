@@ -3,4 +3,5 @@
 # adds knowledge/notes/<handle>/ and the CODEOWNERS line.
 handles:
   - DarkEB1
+  - lucasvilliers
 data_layer_owner: DarkEB1

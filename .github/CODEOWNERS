@@ -11,6 +11,7 @@
 # --- ownership map (informational) ---------------------------------------------------
 /knowledge/        @DarkEB1
 /knowledge/notes/DarkEB1/ @DarkEB1
+/knowledge/notes/lucasvilliers/ @lucasvilliers
 /research/         @DarkEB1
 /dashboards/       @DarkEB1
 /tools/            @DarkEB1
