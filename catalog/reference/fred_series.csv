@@ -1,0 +1,23 @@
+series_id,symbol,kind,units,description
+DEXUSEU,EURUSD,fx_spot,USD per EUR,H.10 noon buying rate New York
+DEXUSUK,GBPUSD,fx_spot,USD per GBP,H.10 noon buying rate New York
+DEXUSAL,AUDUSD,fx_spot,USD per AUD,H.10 noon buying rate New York
+DEXJPUS,USDJPY,fx_spot,JPY per USD,H.10 noon buying rate New York
+DEXSZUS,USDCHF,fx_spot,CHF per USD,H.10 noon buying rate New York
+DEXCAUS,USDCAD,fx_spot,CAD per USD,H.10 noon buying rate New York
+DEXBZUS,USDBRL,fx_spot,BRL per USD,H.10 noon buying rate New York
+DEXMXUS,USDMXN,fx_spot,MXN per USD,H.10 noon buying rate New York
+DEXSFUS,USDZAR,fx_spot,ZAR per USD,H.10 noon buying rate New York
+DEXINUS,USDINR,fx_spot,INR per USD,H.10 noon buying rate New York
+DEXKOUS,USDKRW,fx_spot,KRW per USD,H.10 noon buying rate New York
+DEXCHUS,USDCNY,fx_spot,CNY per USD,H.10 noon buying rate New York
+DEXSIUS,USDSGD,fx_spot,SGD per USD,H.10 noon buying rate New York
+DEXTHUS,USDTHB,fx_spot,THB per USD,H.10 noon buying rate New York
+DEXMAUS,USDMYR,fx_spot,MYR per USD,H.10 noon buying rate New York
+DTB3,US_TBILL_3M,rate,percent,3-month Treasury bill secondary market rate (discount basis)
+DGS3MO,US_CMT_3M,rate,percent,3-month Treasury constant maturity yield
+SOFR,US_SOFR,rate,percent,Secured Overnight Financing Rate (NY Fed)
+DFF,US_EFFR,rate,percent,Effective federal funds rate (7 days a week)
+DTWEXBGS,USD_BROAD,index,Jan 2006=100,Nominal broad U.S. dollar index
+DTWEXEMEGS,USD_EM,index,Jan 2006=100,Nominal emerging market economies U.S. dollar index
+DTWEXAFEGS,USD_AFE,index,Jan 2006=100,Nominal advanced foreign economies U.S. dollar index

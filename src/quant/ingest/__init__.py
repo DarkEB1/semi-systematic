@@ -19,9 +19,10 @@ import datetime as dt
 import sys
 from types import ModuleType
 
-from quant.ingest import yahoo
+from quant.ingest import fred, yahoo
 
 SOURCES: dict[str, ModuleType] = {
+    fred.SOURCE: fred,
     yahoo.SOURCE: yahoo,
 }
 

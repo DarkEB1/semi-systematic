@@ -20,12 +20,13 @@ TODO: add the paid vendor we settle on, its licence terms, cost and the `VENDOR_
   [prices_daily](../../catalog/datasets/prices_daily.md). Personal and research use only; do not
   redistribute. Unofficial API, can change without notice; the ingest fails loudly rather than
   writing partial data.
+- FRED API (free key in `FRED_API_KEY`): H.10 FX fixings (single value per day, no OHLC), US
+  short rates and dollar indices, dataset [series_daily](../../catalog/datasets/series_daily.md).
+  Federal Reserve / NY Fed public data; also a second source to cross-check Yahoo FX.
 
 ## Evaluated
 
 - Stooq daily CSV: behind a JavaScript challenge since at least 2026-10, unusable from a script.
-- FRED (`fredgraph.csv?id=DEX...`): reliable free daily FX fixings, single value per day (no OHLC).
-  Good fallback or second source for a data-quality cross-check.
 
 ## Rules
 

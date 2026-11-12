@@ -17,3 +17,10 @@ SELECT * FROM read_parquet('s3://{bucket}/curated/repo_index/*/*.parquet', hive_
 -- reference: small hand-maintained tables kept in git (1 MB cap)
 CREATE OR REPLACE VIEW ref_universe AS
 SELECT * FROM read_csv_auto('{repo}/catalog/reference/universe.csv', header = true);
+
+-- raw: daily FRED series in long format (series listed in catalog/reference/fred_series.csv)
+CREATE OR REPLACE VIEW fred_series_daily AS
+SELECT * FROM read_parquet('s3://{bucket}/raw/fred/series_daily/*/*/*.parquet', hive_partitioning = true, union_by_name = true);
+
+CREATE OR REPLACE VIEW ref_fred_series AS
+SELECT * FROM read_csv_auto('{repo}/catalog/reference/fred_series.csv', header = true);
