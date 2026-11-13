@@ -40,9 +40,9 @@ Backfills written to `scratch/lucasvilliers/raw/<source>/<dataset>/run=<stamp>/`
 - cboe `vol_indices_daily`, run=20261113T093047Z, 287 objects: VIX from 2003, OVX and GVZ from 2009, VXEEM from 2011, to 2026-11-12.
 - cftc `tff_fx_weekly`, run=20261113T093636Z, 246 objects: 10 currency futures from 2006-06-13 (BRL 2011, ZAR 2010) to 2026-11-03.
 
-Finding for the data-layer owner: against FRED's noon New York fixing, Yahoo `prices_daily` closes match best one day later (median absolute gap 0.088% with Yahoo date = FRED date + 1, against 0.221% on the same date, since 2025-09). The Yahoo dates may be shifted by one day; not changed here.
+Finding for the data-layer owner: Yahoo's daily FX "close" for date D is the price at the start of D (about D-1's close), not the end of D. Checked on 2026-11-13 against Yahoo's own hourly bars, 6 pairs over one month: median gap 0.006-0.027% to the last hourly close before the bar's timestamp, 0.19-0.54% to the 21:00 UTC close of D, for a median daily high-low range of 0.45-0.97%. Open and close of each daily bar are nearly equal. The date handling in `yahoo.py` is correct; the vendor value is stale. Against FRED's noon New York fixing, `prices_daily` matches best one day later (median gap 0.088% with Yahoo date = FRED date + 1, against 0.221% on the same date). No look-ahead, but signals built on it lag one day and cross-source joins are misaligned by a day. Not changed here.
 
-Ingest runs here first failed with `RequestTimeTooSkewed`: the Docker Desktop VM clock had drifted after the Mac slept. One failed Cboe run left a partial `run=20261112T170020Z` folder in scratch.
+Ingest runs here first failed with `RequestTimeTooSkewed`: the Docker Desktop VM clock had drifted after the Mac slept. One failed Cboe run left a partial `run=20261112T170020Z` folder (17 objects) in scratch; it was deleted.
 
 Finding for the data-layer owner: `just scaffold-source` silently skips the registry import once ruff has merged the imports into one line (`from quant.ingest import fred, yahoo`), because the regex in `pull_data.py` expects one module per line; the imports were fixed by hand.
 
