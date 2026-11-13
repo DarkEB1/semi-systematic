@@ -84,7 +84,7 @@ def fetch(
             last = f"HTTP {e.code}"
             if e.code in (400, 403, 404):  # bad series id or key: retrying will not help
                 break
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:  # pragma: no cover
+        except (OSError, json.JSONDecodeError) as e:  # pragma: no cover - network, timeout, reset
             last = type(e).__name__
         time.sleep(1.5 * (attempt + 1))
     raise RuntimeError(f"fred: failed to fetch {series_id}: {last}")
@@ -108,24 +108,6 @@ def normalise(
         rows["source"].append(SOURCE)
         rows["ingested_at"].append(ingested_at)
     return pa.Table.from_pydict(rows, schema=SCHEMA)
-
-
-def check_history(table: pa.Table, since: dt.date, *, client: Any, cfg: data.Settings) -> None:
-    """Refuse a replacement that loses stored series/date rows, before writing any partition."""
-    prefix = f"{data.RAW}{SOURCE}/{DATASETS[0]}/"
-    first = data.partition_key(prefix.rstrip("/"), year=since.year, month=since.month) + "/"
-    incoming = set(zip(table["series_id"].to_pylist(), table["date"].to_pylist(), strict=True))
-    for obj in data.list_keys(prefix, client=client, cfg=cfg):
-        key = obj["Key"]
-        if key < first or not key.endswith("/data.parquet"):
-            continue
-        old = data.read_parquet(key, client=client, cfg=cfg)
-        previous = set(zip(old["series_id"].to_pylist(), old["date"].to_pylist(), strict=True))
-        missing = previous - incoming
-        if missing:
-            raise ValueError(
-                f"fred: incomplete replacement for {key}: {len(missing)} stored rows missing"
-            )
 
 
 def run(
@@ -152,7 +134,15 @@ def run(
     cfg = data.settings(write=True)
     if cfg.role == "ingest":
         client = client or data.s3_client(write=True)
-        check_history(table, since, client=client, cfg=cfg)
+        _base.check_history(
+            table,
+            since,
+            source=SOURCE,
+            dataset=DATASETS[0],
+            id_col="series_id",
+            client=client,
+            cfg=cfg,
+        )
     return _base.write_partitions(
         table,
         source=SOURCE,

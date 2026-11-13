@@ -46,7 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source: [yahoo, fred]
+        source: [yahoo, fred, ecb, bcb, cboe, cftc]
     env:
       QUANT_ROLE: ingest
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}

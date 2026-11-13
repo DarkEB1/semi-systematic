@@ -1,0 +1,74 @@
+[
+ {
+  "report_date_as_yyyy_mm_dd": "2025-12-23T00:00:00.000",
+  "cftc_contract_market_code": "095741",
+  "market_and_exchange_names": "MEXICAN PESO - CHICAGO MERCANTILE EXCHANGE",
+  "open_interest_all": "255477",
+  "dealer_positions_long_all": "6366",
+  "dealer_positions_short_all": "89468",
+  "asset_mgr_positions_long": "105196",
+  "asset_mgr_positions_short": "23975",
+  "lev_money_positions_long": "120475",
+  "lev_money_positions_short": "64964"
+ },
+ {
+  "report_date_as_yyyy_mm_dd": "2025-12-23T00:00:00.000",
+  "cftc_contract_market_code": "099741",
+  "market_and_exchange_names": "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+  "open_interest_all": "866951",
+  "dealer_positions_long_all": "40444",
+  "dealer_positions_short_all": "544642",
+  "asset_mgr_positions_long": "536849",
+  "asset_mgr_positions_short": "146452",
+  "lev_money_positions_long": "120823",
+  "lev_money_positions_short": "64716"
+ },
+ {
+  "report_date_as_yyyy_mm_dd": "2025-12-30T00:00:00.000",
+  "cftc_contract_market_code": "095741",
+  "market_and_exchange_names": "MEXICAN PESO - CHICAGO MERCANTILE EXCHANGE",
+  "open_interest_all": "249474",
+  "dealer_positions_long_all": "6584",
+  "dealer_positions_short_all": "91998",
+  "asset_mgr_positions_long": "104355",
+  "asset_mgr_positions_short": "23896",
+  "lev_money_positions_long": "114785",
+  "lev_money_positions_short": "56319"
+ },
+ {
+  "report_date_as_yyyy_mm_dd": "2025-12-30T00:00:00.000",
+  "cftc_contract_market_code": "099741",
+  "market_and_exchange_names": "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+  "open_interest_all": "869169",
+  "dealer_positions_long_all": "40071",
+  "dealer_positions_short_all": "547387",
+  "asset_mgr_positions_long": "537338",
+  "asset_mgr_positions_short": "145894",
+  "lev_money_positions_long": "121459",
+  "lev_money_positions_short": "68797"
+ },
+ {
+  "report_date_as_yyyy_mm_dd": "2026-01-06T00:00:00.000",
+  "cftc_contract_market_code": "095741",
+  "market_and_exchange_names": "MEXICAN PESO - CHICAGO MERCANTILE EXCHANGE",
+  "open_interest_all": "250364",
+  "dealer_positions_long_all": "5766",
+  "dealer_positions_short_all": "92894",
+  "asset_mgr_positions_long": "104463",
+  "asset_mgr_positions_short": "25754",
+  "lev_money_positions_long": "116809",
+  "lev_money_positions_short": "53294"
+ },
+ {
+  "report_date_as_yyyy_mm_dd": "2026-01-06T00:00:00.000",
+  "cftc_contract_market_code": "099741",
+  "market_and_exchange_names": "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+  "open_interest_all": "881815",
+  "dealer_positions_long_all": "45159",
+  "dealer_positions_short_all": "556172",
+  "asset_mgr_positions_long": "543666",
+  "asset_mgr_positions_short": "144979",
+  "lev_money_positions_long": "119570",
+  "lev_money_positions_short": "68970"
+ }
+]

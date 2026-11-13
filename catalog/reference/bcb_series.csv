@@ -1,0 +1,5 @@
+code,symbol,kind,units,description
+432,BR_SELIC_TARGET,rate,percent p.a.,Selic target set by Copom (one row per calendar day)
+1178,BR_SELIC,rate,percent p.a. (252 days),Selic effective rate annualised
+4389,BR_CDI,rate,percent p.a. (252 days),CDI interbank rate annualised
+1,USDBRL_PTAX,fx_spot,BRL per USD,PTAX USD/BRL selling rate (BCB fixing)
