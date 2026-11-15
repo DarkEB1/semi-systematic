@@ -21,7 +21,7 @@ First names only: this repository is public and nobody but @DarkEB1 has a handle
 
 - James
 - Fenton
-- Nicholas
+- Nick (@DarkEB1)
 - Claudio
 - Lucas
 
@@ -60,12 +60,13 @@ First names only: this repository is public and nobody but @DarkEB1 has a handle
 
 ## Actions
 
-Owners are first names until they have handles, and no dates were set. Unclaimed items are open
+Owners are first names until they have handles, and no dates were set. Alec and Eduardo were not
+at the meeting and were assigned in their absence. Unclaimed items are open
 for anyone to take.
 
 - [ ] Data access: James (@TODO-owner, TODO-date)
 - [ ] Data availability: Fenton (@TODO-owner, TODO-date)
-- [ ] Risk framework, voting, and the motivation for people to be here: Nick (@TODO-owner, TODO-date)
+- [ ] Risk framework, voting, and the motivation for people to be here (@DarkEB1, TODO-date)
 - [ ] Backtesting framework: Alec and Lucas (@TODO-owner, TODO-date)
 - [ ] Brokerage account research and setup: Eduardo (@TODO-owner, TODO-date)
 - [ ] Fund structure (legal set-up): unclaimed (@TODO-owner, TODO-date)

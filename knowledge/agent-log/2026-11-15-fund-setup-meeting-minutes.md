@@ -29,7 +29,11 @@ the meeting-notes skill, plus a link and a todo list to share with the group.
 - Added one action the pasted todo list did not have, "Auditable trade records, NAV and PnL", since
   the notes call it a precondition and nobody holds it. It is marked unclaimed.
 - No todo-board cards: card owners must be handles in `team.yaml`, and the assignees have none yet.
-- Meeting date taken as the day the minutes were pasted.
+- @DarkEB1 confirmed in the session that first names may be published in this public repo, that
+  the meeting took place on 2026-11-15, that they are the Nick of the minutes, and that Alec and
+  Eduardo were assigned in their absence.
+- A clause about members' personal circumstances was removed from the fund-structure action after
+  review: it is personal data the action does not need.
 
 ## Summary
 
