@@ -41,10 +41,13 @@ no results for any of the meeting topics before the file was written.
 
 - [knowledge/meetings/2026-11-15-fund-setup-trade-ideas-and-structure.md](../meetings/2026-11-15-fund-setup-trade-ideas-and-structure.md)
 - [knowledge/INDEX.md](../INDEX.md)
+- [knowledge/agent-log/2026-11-15-fund-setup-meeting-minutes.md](2026-11-15-fund-setup-meeting-minutes.md)
 
 ## Files relied on
 
 - [.claude/skills/meeting-notes/SKILL.md](../../.claude/skills/meeting-notes/SKILL.md)
+- [.claude/skills/meeting-notes/meeting_notes.py](../../.claude/skills/meeting-notes/meeting_notes.py)
+- [knowledge/templates/meeting.md](../templates/meeting.md)
 - [knowledge/AGENTS.md](../AGENTS.md)
 - [knowledge/context/team.yaml](../context/team.yaml)
 - [knowledge/context/tags.md](../context/tags.md)

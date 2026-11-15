@@ -68,7 +68,7 @@ for anyone to take.
 - [ ] Risk framework, voting, and the motivation for people to be here: Nick (@TODO-owner, TODO-date)
 - [ ] Backtesting framework: Alec and Lucas (@TODO-owner, TODO-date)
 - [ ] Brokerage account research and setup: Eduardo (@TODO-owner, TODO-date)
-- [ ] Fund structure (legal set-up, given most members are students and on visas): unclaimed (@TODO-owner, TODO-date)
+- [ ] Fund structure (legal set-up): unclaimed (@TODO-owner, TODO-date)
 - [ ] Auditable trade records, NAV and PnL: unclaimed (@TODO-owner, TODO-date)
 - [ ] Claudio: no preference, to pick up an unclaimed item (@TODO-owner, TODO-date)
 - [ ] Everyone who has not yet: set yourself up with the GitHub repo, see [start-here](../context/start-here.md) (@TODO-owner, TODO-date)
