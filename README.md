@@ -1,4 +1,6 @@
-# semi-systematic
+# Shrubbery Capital Advisory and Management
+
+https://www.youtube.com/shorts/l0B0BlNe7tg
 
 This repository is the data, research, and dashboard for the project. It is the systematic side, organised as a monorepo.
 
