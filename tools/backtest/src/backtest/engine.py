@@ -48,6 +48,14 @@ POSITIONS_SCHEMA = {
     "quantity": pl.Float64,
     "value": pl.Float64,
 }
+PNL_SCHEMA = {
+    "date": pl.Date,
+    "instrument": pl.String,
+    "price": pl.Float64,
+    "cashflow": pl.Float64,
+    "cost": pl.Float64,
+    "pnl": pl.Float64,
+}
 TRADES_SCHEMA = {
     "date": pl.Date,
     "instrument": pl.String,
@@ -70,13 +78,21 @@ class _Book:
         values = [q * self.marks[i] for i, q in self.positions.items()]
         return sum(abs(v) for v in values), sum(values)
 
-    def revalue(self, market: Market, prev: dt.date | None, day: dt.date) -> None:
+    def revalue(
+        self, market: Market, prev: dt.date | None, day: dt.date
+    ) -> list[tuple[Instrument, float, float]]:
+        """Move marks to today and pay cashflows; ``(instrument, price P&L, cashflow)`` each."""
+        moves = []
         for inst, qty in self.positions.items():
             v = inst.value(market, day)
+            move = 0.0
             if v is not None:
+                move = qty * (v - self.marks[inst])
                 self.marks[inst] = v
-            if prev is not None:
-                self.cash += qty * inst.cashflow(market, prev, day)
+            flow = qty * inst.cashflow(market, prev, day) if prev is not None else 0.0
+            self.cash += flow
+            moves.append((inst, move, flow))
+        return moves
 
     def fill(self, inst: Instrument, qty: float, price: float) -> None:
         self.cash -= qty * price
@@ -97,9 +113,19 @@ class _Run:
     traded: float = 0.0  # today's |notional| filled
     cost: float = 0.0  # today's costs paid
     pending: dict[Instrument, tuple[int, float]] = field(default_factory=dict)
+    today: dict[Instrument, list[float]] = field(default_factory=dict)  # price, cashflow, cost
+    attribution: list[dict[str, Any]] = field(default_factory=list)
     daily: list[dict[str, Any]] = field(default_factory=list)
     holdings: list[dict[str, Any]] = field(default_factory=list)
     fills: list[dict[str, Any]] = field(default_factory=list)
+
+    def revalue(self, prev: dt.date | None, day: dt.date) -> None:
+        for inst, move, flow in self.book.revalue(self.market, prev, day):
+            self._attribute(inst, 0, move)
+            self._attribute(inst, 1, flow)
+
+    def _attribute(self, inst: Instrument, column: int, amount: float) -> None:
+        self.today.setdefault(inst, [0.0, 0.0, 0.0])[column] += amount
 
     def queue(self, targets: Targets, due: int) -> None:
         wanted = {as_instrument(k): float(q) for k, q in targets.items()}
@@ -128,6 +154,7 @@ class _Run:
         self.book.cash -= cost
         self.traded += abs(qty * price)
         self.cost += cost
+        self._attribute(inst, 2, -cost)
         self.fills.append(
             {"date": day, "instrument": inst.id, "quantity": qty, "price": price, "cost": cost}
         )
@@ -141,6 +168,12 @@ class _Run:
             | {"gross": gross, "net": net, "traded": self.traded, "cost": self.cost}
         )
         self.traded = self.cost = 0.0
+        for inst, (move, flow, cost) in sorted(self.today.items(), key=lambda kv: kv[0].id):
+            self.attribution.append(
+                {"date": day, "instrument": inst.id, "price": move, "cashflow": flow}
+                | {"cost": cost, "pnl": move + flow + cost}
+            )
+        self.today.clear()
         for inst, qty in sorted(self.book.positions.items(), key=lambda kv: kv[0].id):
             self.holdings.append(
                 {"date": day, "instrument": inst.id, "quantity": qty}
@@ -162,6 +195,7 @@ class _Run:
             daily=pl.DataFrame(self.daily, schema=DAILY_SCHEMA),
             positions=pl.DataFrame(self.holdings, schema=POSITIONS_SCHEMA),
             trades=pl.DataFrame(self.fills, schema=TRADES_SCHEMA),
+            pnl=pl.DataFrame(self.attribution, schema=PNL_SCHEMA),
             capital=self.capital,
         )
 
@@ -190,7 +224,7 @@ def run(
     r = _Run(market=market, book=_Book(cash=capital), capital=capital, costs=costs or NoCost())
     prev: dt.date | None = None
     for i, day in enumerate(days):
-        r.book.revalue(market, prev, day)
+        r.revalue(prev, day)
         r.execute(i, day)
         ctx = r.context(day)
         if i == 0:
