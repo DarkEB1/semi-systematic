@@ -5,7 +5,8 @@ about the repository, the bucket or .env. Contract: tools/README.md; conventions
 follow (returns, costs, calendars, currencies): knowledge/context/conventions.md.
 
 Three layers. ``Market`` holds the data; an ``Instrument`` knows how to value itself from it
-(one class per asset class: ``Cash`` for anything worth its quoted price); ``run`` replays the
+(one class per asset class: ``Cash`` for anything worth its quoted price, ``FxPair`` for spot FX
+against USD with carry); ``run`` replays the
 calendar, asks the ``Strategy`` what to hold at each close and keeps the books.
 
     from backtest import BpsCost, Market, Strategy, run
@@ -27,7 +28,7 @@ from __future__ import annotations
 
 from backtest.costs import BpsCost, CostModel, NoCost, PerUnitCost
 from backtest.engine import run
-from backtest.instruments import Cash, Instrument
+from backtest.instruments import Cash, FxPair, Instrument
 from backtest.market import LookaheadError, Market, MarketView
 from backtest.result import Result
 from backtest.strategy import Context, Strategy
@@ -39,6 +40,7 @@ __all__ = [
     "Cash",
     "Context",
     "CostModel",
+    "FxPair",
     "Instrument",
     "LookaheadError",
     "Market",

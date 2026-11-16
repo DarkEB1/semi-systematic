@@ -1,10 +1,11 @@
 """Result: what a backtest returns, as polars tables.
 
 ``daily``: one row per day (``date, nav, pnl, cash, gross, net, traded, cost``); ``pnl`` is after
-costs, ``traded`` the absolute notional filled that day. ``positions``: holdings after each close
-(``date, instrument, quantity, value``). ``trades``: every fill (``date, instrument, quantity,
-price, cost``). ``pnl``: the day's P&L split by instrument and cause (``date, instrument, price,
-cashflow, cost, pnl``); its ``pnl`` column summed per day equals ``daily.pnl``.
+costs, ``gross``/``net`` the unsigned/signed exposure held, ``traded`` the absolute value filled
+that day. ``positions``: holdings after each close (``date, instrument, quantity, value``).
+``trades``: every fill (``date, instrument, quantity, price, cost``). ``pnl``: the day's P&L
+split by instrument and cause (``date, instrument, price, cashflow, cost, pnl``); its ``pnl``
+column summed per day equals ``daily.pnl``.
 """
 
 from __future__ import annotations

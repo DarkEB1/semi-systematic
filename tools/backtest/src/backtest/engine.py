@@ -75,8 +75,9 @@ class _Book:
         return self.cash + sum(q * self.marks[i] for i, q in self.positions.items())
 
     def exposures(self) -> tuple[float, float]:
-        values = [q * self.marks[i] for i, q in self.positions.items()]
-        return sum(abs(v) for v in values), sum(values)
+        """Gross and net exposure: quantity times each unit's exposure, unsigned and signed."""
+        exp = [q * i.exposure(self.marks[i]) for i, q in self.positions.items()]
+        return sum(abs(e) for e in exp), sum(exp)
 
     def revalue(
         self, market: Market, prev: dt.date | None, day: dt.date

@@ -40,7 +40,8 @@ class Context:
         return self.positions.get(as_instrument(instrument), 0.0)
 
     def quantities(self, weights: Targets) -> dict[Instrument, float]:
-        """Weights (fractions of today's NAV) as target quantities: ``weight * nav / value``.
+        """Weights (fractions of today's NAV) as target quantities: ``weight * nav / exposure``
+        (``exposure`` is the instrument's per-unit exposure at today's value, ``|value|`` for most).
 
         A zero weight is a zero quantity (the engine fills it at the next observed price). Any
         other weight on an instrument with no value today cannot be sized, so it keeps its
@@ -55,10 +56,10 @@ class Context:
             v = self.value(inst)
             if v is None:
                 out[inst] = self.position(inst)
-            elif v == 0:
-                raise ValueError(f"cannot size {inst.id} on {self.date}: its value is zero")
+            elif inst.exposure(v) == 0:
+                raise ValueError(f"cannot size {inst.id} on {self.date}: its exposure is zero")
             else:
-                out[inst] = w * self.nav / v
+                out[inst] = w * self.nav / inst.exposure(v)
         return out
 
 

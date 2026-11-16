@@ -3,8 +3,10 @@
 Two questions only. ``value``: what one unit is worth on a day, in the reporting currency
 (``None`` when the market has no observation that day). ``cashflow``: what one unit paid or cost
 between two consecutive valuation days (dividends, carry, coupons, an expiry payoff); zero by
-default. The engine never knows what kind of asset it holds; adding an asset class is a new
-subclass, never a change to the engine.
+default. ``exposure`` turns a unit's value into the exposure it carries, for sizing weights and
+for the gross and net figures; ``|value|`` unless the asset class says otherwise. The engine
+never knows what kind of asset it holds; adding an asset class is a new subclass, never a change
+to the engine.
 
 Subclasses are frozen dataclasses, so an instrument is hashable and can key a position.
 """
@@ -31,3 +33,7 @@ class Instrument(ABC):
     def cashflow(self, market: Market, prev_day: dt.date, day: dt.date) -> float:
         """Cash paid to (positive) or by (negative) one unit held from ``prev_day`` to ``day``."""
         return 0.0
+
+    def exposure(self, value: float) -> float:
+        """Exposure of one unit worth ``value``, in the reporting currency; never negative."""
+        return abs(value)
