@@ -18,6 +18,9 @@ calendar, asks the ``Strategy`` what to hold at each close and keeps the books.
 
     res = run(Momentum(), Market.from_wide(prices), capital=10_000, costs=BpsCost(5))
     res.daily          # date | nav | pnl | cash | gross | net | traded | cost
+
+    # or, for a strategy that is just a weight per symbol per rebalance date:
+    res = run_weights(weights, market, costs=BpsCost(5))   # weights: date | SPY | QQQ ...
 """
 
 from __future__ import annotations
@@ -28,6 +31,7 @@ from backtest.instruments import Cash, Instrument
 from backtest.market import LookaheadError, Market, MarketView
 from backtest.result import Result
 from backtest.strategy import Context, Strategy
+from backtest.weights import TargetWeights, run_weights
 
 __version__ = "0.1.0"
 __all__ = [
@@ -43,5 +47,7 @@ __all__ = [
     "PerUnitCost",
     "Result",
     "Strategy",
+    "TargetWeights",
     "run",
+    "run_weights",
 ]

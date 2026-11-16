@@ -16,7 +16,8 @@ from dataclasses import dataclass
 from backtest.instruments import Cash, Instrument
 from backtest.market import Market, MarketView
 
-Targets = Mapping[Instrument | str, float]
+# Keys are instruments or symbol strings; Mapping is invariant in its key, so all three spellings.
+Targets = Mapping[Instrument, float] | Mapping[str, float] | Mapping[Instrument | str, float]
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,28 @@ class Context:
     def position(self, instrument: Instrument | str) -> float:
         """Quantity held now, zero if none."""
         return self.positions.get(as_instrument(instrument), 0.0)
+
+    def quantities(self, weights: Targets) -> dict[Instrument, float]:
+        """Weights (fractions of today's NAV) as target quantities: ``weight * nav / value``.
+
+        A zero weight is a zero quantity (the engine fills it at the next observed price). Any
+        other weight on an instrument with no value today cannot be sized, so it keeps its
+        current quantity.
+        """
+        out: dict[Instrument, float] = {}
+        for key, w in weights.items():
+            inst = as_instrument(key)
+            if w == 0:
+                out[inst] = 0.0
+                continue
+            v = self.value(inst)
+            if v is None:
+                out[inst] = self.position(inst)
+            elif v == 0:
+                raise ValueError(f"cannot size {inst.id} on {self.date}: its value is zero")
+            else:
+                out[inst] = w * self.nav / v
+        return out
 
 
 class Strategy(ABC):
