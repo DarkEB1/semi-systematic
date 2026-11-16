@@ -15,6 +15,8 @@ judgement in the Verdict. The eval fixture is `ai/evals/new-experiment/`.
   `just project <p>` creates one), the owner's handle (defaults to `R2_HANDLE`), a one-line hypothesis.
 - Datasets as `name:snapshot` pairs; snapshots are dates of curated snapshots (`just search "<name>"`
   or the dashboard's data page lists them). An experiment may also read raw views, but then say so.
+  Before promotion, edit the scaffolded dataset declaration to include `scratch_key` and `sha256`
+  (ADR-0011). The snapshot then denotes acquisition; resolve retention before setting final.
 - Optional `--parent SLUG` when this follows a frozen experiment.
 
 ## Steps

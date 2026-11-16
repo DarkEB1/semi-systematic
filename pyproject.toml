@@ -19,7 +19,11 @@ dependencies = [
 
 [project.optional-dependencies]
 # Optional groups. src/quant must import only the base group (enforced by ruff TID251).
-ml = ["scikit-learn>=1.6", "statsmodels>=0.14"]
+ml = [
+    "matplotlib>=3.10",
+    "scikit-learn>=1.6",
+    "statsmodels>=0.14",
+]
 
 [dependency-groups]
 dev = [

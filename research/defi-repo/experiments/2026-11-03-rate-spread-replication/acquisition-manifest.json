@@ -1,0 +1,60 @@
+{
+  "acquired_at": "2026-11-03T10:43:57.666540+00:00",
+  "onchain_source": "https://eth-mainnet.g.alchemy.com/public",
+  "offchain_source": "https://markets.newyorkfed.org/api/rates/{market}/{rate}/search.json",
+  "independent_rpc": "https://eth.drpc.org",
+  "checks": [
+    {
+      "date": "2021-01-03",
+      "block": 11578164,
+      "block_hash_agrees": true,
+      "reserve_and_index_calls_agree": 9
+    },
+    {
+      "date": "2023-03-12",
+      "block": 16808257,
+      "block_hash_agrees": true,
+      "reserve_and_index_calls_agree": 9
+    },
+    {
+      "date": "2023-10-15",
+      "block": 18352058,
+      "block_hash_agrees": true,
+      "reserve_and_index_calls_agree": 18
+    },
+    {
+      "date": "2024-10-09",
+      "block": 20924302,
+      "block_hash_agrees": true,
+      "reserve_and_index_calls_agree": 9
+    },
+    {
+      "date": "2025-01-01",
+      "block": 21525890,
+      "block_hash_agrees": true,
+      "reserve_and_index_calls_agree": 9
+    },
+    {
+      "date": "2026-01-30",
+      "block": 24343955,
+      "block_hash_agrees": true,
+      "reserve_and_index_calls_agree": 9
+    }
+  ],
+  "feed_decimals_verified": 8,
+  "datasets": [
+    {
+      "name": "aave_reserve_daily",
+      "rows": 5571,
+      "bytes": 1172496,
+      "local_sha256": "a067033871b847f5f69b397a8a4c3e4f115a5b6a8d82d563b847a837c1fa046a"
+    },
+    {
+      "name": "usd_reference_rates",
+      "rows": 2548,
+      "bytes": 15009,
+      "local_sha256": "ac02df4c4301dbfd5400ff13bd370969e57f4346f410513268e78ca4459c924a"
+    }
+  ],
+  "total_bytes": 1187505
+}

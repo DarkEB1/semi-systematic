@@ -1,0 +1,56 @@
+slug: rate-spread-replication
+project: defi-repo
+date: '2026-11-03'
+owner: DarkEB1
+hypothesis: Stablecoin deposit spreads to SOFR exhibit measurable persistence or reversal;
+  realized carry after stated costs is a separate test.
+datasets:
+- name: aave_reserve_daily
+  snapshot: '2026-11-03'
+  scratch_key: scratch/DarkEB1/defi-repo/aave_reserve_daily/snapshot=2026-11-03/data.parquet
+  sha256: a067033871b847f5f69b397a8a4c3e4f115a5b6a8d82d563b847a837c1fa046a
+- name: usd_reference_rates
+  snapshot: '2026-11-03'
+  scratch_key: scratch/DarkEB1/defi-repo/usd_reference_rates/snapshot=2026-11-03/data.parquet
+  sha256: ac02df4c4301dbfd5400ff13bd370969e57f4346f410513268e78ca4459c924a
+params:
+  start: '2021-01-04'
+  end: '2026-01-30'
+  protocol_switch: '2023-10-15'
+  weekly_anchor: W-FRI
+  ecm_max_lags: 8
+  hac_lags: 4
+  forecast_min_weeks: 52
+  trading_start: '2022-01-03'
+  evaluation_split: '2024-01-01'
+  signal_lag_days: 1
+  rebalance_weekday: 0
+  entry_hurdles_bp:
+  - 0
+  - 100
+  - 200
+  baseline_hurdle_bp: 100
+  one_way_costs_bp:
+  - 0
+  - 5
+  - 25
+  baseline_cost_bp: 5
+  notionals_usd:
+  - 10000
+  - 100000
+  - 1000000
+  baseline_notional_usd: 100000
+  gas_units_per_action: 300000
+  priority_fee_gwei: 2
+  max_oracle_age_hours: 48
+  capacity_fraction: 0.01
+  sofr_max_span_days: 5
+  bootstrap_block_days: 28
+  bootstrap_draws: 1000
+  permanent_loss_stress_pct:
+  - 1
+  - 5
+  - 10
+  interpretation: Conditional simulations; SOFR access, oracle-price execution and
+    quoted cost scenarios are assumptions, not observed executable trading returns.
+seed: 3280

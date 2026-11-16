@@ -23,6 +23,12 @@ TODO: add the paid vendor we settle on, its licence terms, cost and the `VENDOR_
 
 ## Evaluated
 
+- Research sources for DeFi-repo: Ethereum contract state through Alchemy public RPC and official
+  New York Fed SOFR/EFFR. Scope, retention and alternatives are recorded in
+  [ADR-0010](../decisions/ADR-0010-defi-repo-research-sources.md). No paid subscription.
+- Aavescan full historical exports require paid access. DefiLlama was not acquired for this
+  server because its published copying/mirroring and commercial-use restrictions need permission.
+
 - Stooq daily CSV: behind a JavaScript challenge since at least 2026-10, unusable from a script.
 - FRED (`fredgraph.csv?id=DEX...`): reliable free daily FX fixings, single value per day (no OHLC).
   Good fallback or second source for a data-quality cross-check.

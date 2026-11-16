@@ -152,10 +152,10 @@ FIXTURE_ROWS = [
 
 def registry_patch(source: str) -> tuple[str, str]:
     text = REGISTRY.read_text(encoding="utf-8")
-    if f"from quant.ingest import {source}" in text:
+    if re.search(rf"\b{re.escape(source)}\.SOURCE:\s*{re.escape(source)},", text):
         return text, text
     new = re.sub(
-        r"(from quant\.ingest import [a-z_]+\n)(?!from quant\.ingest import)",
+        r"(from quant\.ingest import (?:\([^)]*\)|[^\n]+)\n)",
         rf"\1from quant.ingest import {source}\n",
         text,
         count=1,

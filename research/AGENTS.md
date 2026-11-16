@@ -8,6 +8,8 @@ Rules for anything under `research/`. The root `AGENTS.md` applies as well.
   `just experiment <slug> --project <p>`. Never rename or move either kind of folder.
 - `config.yaml` is the whole contract: datasets with snapshots, params, seed. The notebook reads
   data only through `quant.data.load(config)`; a missing snapshot is an error, never "latest".
+  Pre-promotion inputs may specify `scratch_key` plus `sha256` (ADR-0011); these are schema-checked
+  acquisition snapshots. Resolve retention/promotion before freezing results.
 - Every number that will be quoted is written to `outputs/` (gitignored). `--finish` drafts
   `results.md` and the research-log entry from `outputs/` only. You write the Verdict.
 - `status: final` in `results.md` freezes the folder; `just check` refuses later diffs. A follow-up

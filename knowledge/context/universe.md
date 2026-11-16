@@ -28,5 +28,9 @@ ticker lives in its own column.
 
 ## Changing the universe
 
+Research-only exception: [DeFi-repo research](../../research/defi-repo/README.md) covers Ethereum
+Aave stablecoin deposits and USD reference rates under [ADR-0010](../decisions/ADR-0010-defi-repo-research-sources.md).
+This does not add live-trading instruments to the FX universe.
+
 Edit the CSV in a PR. Adding an instrument class is an ADR; adding a pair to an existing class is
 a minutes line marked (minor).

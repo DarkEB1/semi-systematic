@@ -21,6 +21,7 @@ Raw is stored as received (no schema contract, ``quant.data.schema``). Catalog v
 
 from __future__ import annotations
 
+import hashlib
 import io
 import os
 import re
@@ -300,11 +301,29 @@ def connect(*, strict: bool = False, views: bool = True) -> Any:
 # --------------------------------------------------------------------------- experiments
 
 
+def _load_scratch(item: dict[str, Any], cfg: Settings) -> pa.Table:
+    """Read one explicitly pinned research object; never fall back from curated data."""
+    key, digest = item["scratch_key"], item.get("sha256", "")
+    if not re.fullmatch(r"scratch/[A-Za-z0-9_-]+/[A-Za-z0-9_=/.-]+\.parquet", key):
+        raise ValueError("scratch_key must name one scratch Parquet object without wildcards")
+    if ".." in key.split("/") or f"/snapshot={item['snapshot']}/" not in key:
+        raise ValueError("scratch key traversal or snapshot mismatch")
+    if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise ValueError("scratch inputs require a SHA-256 digest")
+    body = s3_client().get_object(Bucket=cfg.bucket, Key=key)["Body"].read()
+    if hashlib.sha256(body).hexdigest() != digest:
+        raise ValueError(f"{item['name']}: scratch checksum mismatch")
+    table = pq.read_table(io.BytesIO(body))
+    validate_schema(table, item["name"])
+    return table
+
+
 def load(config: str | os.PathLike[str] | dict[str, Any]) -> dict[str, pa.Table]:
     """Read an experiment ``config.yaml`` and return only the named datasets at the named snapshots.
 
     ``datasets:`` is a list of ``{name: prices_daily, snapshot: 2026-10-29}``. Each is read from
     ``curated/<name>/snapshot=<snapshot>/``; a missing snapshot is an error, never silently the latest.
+    Explicit ``scratch_key`` plus ``sha256`` pins a schema-checked pre-promotion input (ADR-0011).
     """
     cfg: dict[str, Any] = (
         config
@@ -312,12 +331,18 @@ def load(config: str | os.PathLike[str] | dict[str, Any]) -> dict[str, pa.Table]
         else yaml.safe_load(Path(config).read_text(encoding="utf-8"))
     )
     s = settings()
-    con = connect(views=False)
+    con = None
     out: dict[str, pa.Table] = {}
     for item in cfg.get("datasets", []) or []:
         name, snap = item["name"], str(item["snapshot"])
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", snap):
             raise ValueError(f"{name}: snapshot must be YYYY-MM-DD, got {snap!r}")
+        if name in out:
+            raise ValueError(f"duplicate dataset {name}")
+        if "scratch_key" in item:
+            out[name] = _load_scratch(item, s)
+            continue
+        con = con or connect(views=False)
         url = f"s3://{s.bucket}/curated/{name}/snapshot={snap}/*.parquet"
         try:
             out[name] = con.execute("SELECT * FROM read_parquet(?)", [url]).arrow()
