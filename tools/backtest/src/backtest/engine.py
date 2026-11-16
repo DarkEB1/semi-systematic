@@ -4,7 +4,8 @@ At every close, in this order:
 
 1. **Revalue** what is held: each instrument's mark moves to today's value (kept from the last
    observed day when today has none), and its cashflow since the previous close is paid.
-2. **Fill** orders that are due (decided ``delay`` closes ago) at today's value.
+2. **Fill** orders that are due (decided ``delay`` closes ago) at today's value, paying the
+   cost model's charge out of cash.
 3. **Ask** the strategy, through a ``Context`` that cannot see past today, what to hold.
 4. With ``delay=0``, **fill** that answer now, at today's close.
 5. **Record** the day.
@@ -23,6 +24,7 @@ from typing import Any
 
 import polars as pl
 
+from backtest.costs import CostModel, NoCost
 from backtest.instruments import Instrument
 from backtest.market import Market
 from backtest.result import Result
@@ -37,6 +39,8 @@ DAILY_SCHEMA = {
     "cash": pl.Float64,
     "gross": pl.Float64,
     "net": pl.Float64,
+    "traded": pl.Float64,
+    "cost": pl.Float64,
 }
 POSITIONS_SCHEMA = {
     "date": pl.Date,
@@ -49,6 +53,7 @@ TRADES_SCHEMA = {
     "instrument": pl.String,
     "quantity": pl.Float64,
     "price": pl.Float64,
+    "cost": pl.Float64,
 }
 
 
@@ -88,6 +93,9 @@ class _Run:
     market: Market
     book: _Book
     capital: float
+    costs: CostModel
+    traded: float = 0.0  # today's |notional| filled
+    cost: float = 0.0  # today's costs paid
     pending: dict[Instrument, tuple[int, float]] = field(default_factory=dict)
     daily: list[dict[str, Any]] = field(default_factory=list)
     holdings: list[dict[str, Any]] = field(default_factory=list)
@@ -110,10 +118,19 @@ class _Run:
             del self.pending[inst]
             qty = target - self.book.positions.get(inst, 0.0)
             if abs(qty) > EPS:
-                self.book.fill(inst, qty, price)
-                self.fills.append(
-                    {"date": day, "instrument": inst.id, "quantity": qty, "price": price}
-                )
+                self.fill(inst, qty, price, day)
+
+    def fill(self, inst: Instrument, qty: float, price: float, day: dt.date) -> None:
+        cost = self.costs.cost(inst, qty, price, day)
+        if cost < 0:
+            raise ValueError(f"cost model returned a negative cost for {inst.id}")
+        self.book.fill(inst, qty, price)
+        self.book.cash -= cost
+        self.traded += abs(qty * price)
+        self.cost += cost
+        self.fills.append(
+            {"date": day, "instrument": inst.id, "quantity": qty, "price": price, "cost": cost}
+        )
 
     def record(self, day: dt.date) -> None:
         nav = self.book.nav()
@@ -121,8 +138,9 @@ class _Run:
         gross, net = self.book.exposures()
         self.daily.append(
             {"date": day, "nav": nav, "pnl": nav - prev, "cash": self.book.cash}
-            | {"gross": gross, "net": net}
+            | {"gross": gross, "net": net, "traded": self.traded, "cost": self.cost}
         )
+        self.traded = self.cost = 0.0
         for inst, qty in sorted(self.book.positions.items(), key=lambda kv: kv[0].id):
             self.holdings.append(
                 {"date": day, "instrument": inst.id, "quantity": qty}
@@ -156,18 +174,20 @@ def run(
     start: dt.date | None = None,
     end: dt.date | None = None,
     delay: int = 0,
+    costs: CostModel | None = None,
 ) -> Result:
     """Backtest ``strategy`` over every day of ``market`` between ``start`` and ``end``.
 
     ``delay`` is the number of closes between a decision and its fill: 0 fills at the close the
     decision was taken (the daily convention), 1 at the next close (more conservative).
+    ``costs`` charges every fill (default: free, ``NoCost``).
     """
     if delay < 0:
         raise ValueError("run: delay must be >= 0")
     days = [d for d in market.dates if (start is None or d >= start) and (end is None or d <= end)]
     if not days:
         raise ValueError("run: no market day between start and end")
-    r = _Run(market=market, book=_Book(cash=capital), capital=capital)
+    r = _Run(market=market, book=_Book(cash=capital), capital=capital, costs=costs or NoCost())
     prev: dt.date | None = None
     for i, day in enumerate(days):
         r.book.revalue(market, prev, day)

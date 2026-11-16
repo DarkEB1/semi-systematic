@@ -8,7 +8,7 @@ Three layers. ``Market`` holds the data; an ``Instrument`` knows how to value it
 (one class per asset class: ``Cash`` for anything worth its quoted price); ``run`` replays the
 calendar, asks the ``Strategy`` what to hold at each close and keeps the books.
 
-    from backtest import Market, Strategy, run
+    from backtest import BpsCost, Market, Strategy, run
 
     class Momentum(Strategy):
         def on_day(self, ctx):
@@ -16,12 +16,13 @@ calendar, asks the ``Strategy`` what to hold at each close and keeps the books.
             up = len(closes) == 21 and closes[-1] > closes[0]
             return {"SPY": 10 if up else 0}
 
-    res = run(Momentum(), Market.from_wide(prices), capital=10_000)
-    res.daily          # date | nav | pnl | cash | gross | net
+    res = run(Momentum(), Market.from_wide(prices), capital=10_000, costs=BpsCost(5))
+    res.daily          # date | nav | pnl | cash | gross | net | traded | cost
 """
 
 from __future__ import annotations
 
+from backtest.costs import BpsCost, CostModel, NoCost, PerUnitCost
 from backtest.engine import run
 from backtest.instruments import Cash, Instrument
 from backtest.market import LookaheadError, Market, MarketView
@@ -30,12 +31,16 @@ from backtest.strategy import Context, Strategy
 
 __version__ = "0.1.0"
 __all__ = [
+    "BpsCost",
     "Cash",
     "Context",
+    "CostModel",
     "Instrument",
     "LookaheadError",
     "Market",
     "MarketView",
+    "NoCost",
+    "PerUnitCost",
     "Result",
     "Strategy",
     "run",

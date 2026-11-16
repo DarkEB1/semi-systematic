@@ -1,8 +1,9 @@
 """Result: what a backtest returns, as polars tables.
 
-``daily``: one row per day (``date, nav, pnl, cash, gross, net``). ``positions``: holdings after
-each close (``date, instrument, quantity, value``). ``trades``: every fill (``date, instrument,
-quantity, price``).
+``daily``: one row per day (``date, nav, pnl, cash, gross, net, traded, cost``); ``pnl`` is after
+costs, ``traded`` the absolute notional filled that day. ``positions``: holdings after each close
+(``date, instrument, quantity, value``). ``trades``: every fill (``date, instrument, quantity,
+price, cost``).
 """
 
 from __future__ import annotations

@@ -33,7 +33,7 @@ def test_hold_ten_shares_example() -> None:
     assert pnl(res) == pytest.approx([0.0, 30.0, -20.0])
     assert res.daily["nav"].to_list() == pytest.approx([1000.0, 1030.0, 1010.0])
     assert res.trades.to_dicts() == [
-        {"date": D1, "instrument": "SPY", "quantity": 10.0, "price": 100.0}
+        {"date": D1, "instrument": "SPY", "quantity": 10.0, "price": 100.0, "cost": 0.0}
     ]
 
 
