@@ -36,7 +36,7 @@ from backtest.result import Result
 from backtest.strategy import Context, Strategy
 from backtest.weights import TargetWeights, run_weights
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
     "BpsCost",
     "Cash",
