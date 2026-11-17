@@ -38,7 +38,7 @@ def test_legs() -> None:
     assert (FxPair("EURUSD").base, FxPair("EURUSD").quote) == ("EUR", "USD")
 
 
-@pytest.mark.parametrize("bad", ["EURJPY", "USDUSD", "usdbrl", "USDBR", "USD/BRL"])
+@pytest.mark.parametrize("bad", ["USDUSD", "usdbrl", "USDBR", "USD/BRL"])
 def test_bad_symbols_raise(bad: str) -> None:
     with pytest.raises(ValueError):
         FxPair(bad)

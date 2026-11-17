@@ -198,6 +198,7 @@ class _Run:
             trades=pl.DataFrame(self.fills, schema=TRADES_SCHEMA),
             pnl=pl.DataFrame(self.attribution, schema=PNL_SCHEMA),
             capital=self.capital,
+            currency=self.market.currency,
         )
 
 

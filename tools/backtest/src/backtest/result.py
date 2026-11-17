@@ -22,6 +22,7 @@ class Result:
     trades: pl.DataFrame
     pnl: pl.DataFrame
     capital: float
+    currency: str = "USD"  # every amount above is in this currency (the market's)
 
     @property
     def returns(self) -> pl.Series:

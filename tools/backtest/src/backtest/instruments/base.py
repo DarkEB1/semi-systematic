@@ -37,3 +37,11 @@ class Instrument(ABC):
     def exposure(self, value: float) -> float:
         """Exposure of one unit worth ``value``, in the reporting currency; never negative."""
         return abs(value)
+
+    def split(
+        self, market: Market, day: dt.date, notional: float
+    ) -> dict[Instrument, float | None] | None:
+        """For an instrument held as other instruments (an FX cross as its two legs): the leg
+        quantities giving ``notional`` of exposure (``None`` for a leg that cannot be sized
+        today). ``None``, the default, means the instrument is held as itself."""
+        return None
