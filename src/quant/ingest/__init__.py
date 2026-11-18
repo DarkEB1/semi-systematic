@@ -19,9 +19,14 @@ import datetime as dt
 import sys
 from types import ModuleType
 
-from quant.ingest import yahoo
+from quant.ingest import bcb, cboe, cftc, ecb, fred, yahoo
 
 SOURCES: dict[str, ModuleType] = {
+    cftc.SOURCE: cftc,
+    cboe.SOURCE: cboe,
+    bcb.SOURCE: bcb,
+    ecb.SOURCE: ecb,
+    fred.SOURCE: fred,
     yahoo.SOURCE: yahoo,
 }
 

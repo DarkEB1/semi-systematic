@@ -155,7 +155,7 @@ def registry_patch(source: str) -> tuple[str, str]:
     if f"from quant.ingest import {source}" in text:
         return text, text
     new = re.sub(
-        r"(from quant\.ingest import [a-z_]+\n)(?!from quant\.ingest import)",
+        r"(from quant\.ingest import [a-z_, ]+\n)(?!from quant\.ingest import)",
         rf"\1from quant.ingest import {source}\n",
         text,
         count=1,

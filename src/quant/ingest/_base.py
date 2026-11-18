@@ -69,3 +69,32 @@ def write_partitions(
             data.write_once(sub, key, overwrite=overwrite, client=client, cfg=cfg)
         keys.append(key)
     return keys
+
+
+def check_history(
+    table: pa.Table,
+    since: dt.date,
+    *,
+    source: str,
+    dataset: str,
+    id_col: str,
+    client: Any,
+    cfg: data.Settings,
+    date_col: str = "date",
+) -> None:
+    """Refuse a replacement that loses stored ``(id_col, date)`` rows in the partitions it rewrites
+    (those from ``since``'s month on), before any partition is written."""
+    prefix = f"{data.RAW}{source}/{dataset}/"
+    first = data.partition_key(prefix.rstrip("/"), year=since.year, month=since.month) + "/"
+    incoming = set(zip(table[id_col].to_pylist(), table[date_col].to_pylist(), strict=True))
+    for obj in data.list_keys(prefix, client=client, cfg=cfg):
+        key = obj["Key"]
+        if key < first or not key.endswith("/data.parquet"):
+            continue
+        old = data.read_parquet(key, client=client, cfg=cfg)
+        previous = set(zip(old[id_col].to_pylist(), old[date_col].to_pylist(), strict=True))
+        missing = previous - incoming
+        if missing:
+            raise ValueError(
+                f"{source}: incomplete replacement for {key}: {len(missing)} stored rows missing"
+            )
