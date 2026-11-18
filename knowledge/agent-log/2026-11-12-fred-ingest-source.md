@@ -95,4 +95,4 @@ Needs a human: `FRED_API_KEY` repository secret before the first nightly run; re
 
 ## PR
 
-None yet: built locally at the owner's request; the branch `feat/ingest-fred` is stacked on the onboarding branch and is pushed later.
+Branch `feat/ingest-free-sources`, stacked on the onboarding PR (https://github.com/DarkEB1/semi-systematic/pull/13); its PR follows once pushed.
