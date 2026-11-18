@@ -82,18 +82,14 @@ wheels = [
 
 [[package]]
 name = "backtest"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "tools/backtest" }
 dependencies = [
-    { name = "polars" },
-    { name = "pyarrow" },
+    { name = "numpy" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "polars", specifier = ">=1.30" },
-    { name = "pyarrow", specifier = ">=20" },
-]
+requires-dist = [{ name = "numpy", specifier = ">=2.0" }]
 
 [[package]]
 name = "boto3"

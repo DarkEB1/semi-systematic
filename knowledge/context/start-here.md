@@ -58,7 +58,7 @@ semi-systematic/
 ├── tests/                    pytest; `just test`
 ├── tools/                    isolated packages, importable anywhere (contract in tools/README.md)
 │   ├── brain/                retrieval index (`just index`, `just search`)
-│   └── backtest/             reserved for the first reusable backtest loop; `just new-tool` adds more
+│   └── backtest/             walk-forward splits, net PnL scores, Rademacher haircut; `just new-tool` adds more
 ├── dashboards/hub/           one marimo hub, five pages (`just dashboard`, port 2718)
 ├── .todos/                   worktree of the `todos` branch, the team board; `just todo` keeps it (gitignored)
 ├── .claude/
