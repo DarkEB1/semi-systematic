@@ -85,12 +85,14 @@ name = "backtest"
 version = "0.2.0"
 source = { editable = "tools/backtest" }
 dependencies = [
+    { name = "numpy" },
     { name = "polars" },
     { name = "pyarrow" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "numpy", specifier = ">=2.0" },
     { name = "polars", specifier = ">=1.30" },
     { name = "pyarrow", specifier = ">=20" },
 ]

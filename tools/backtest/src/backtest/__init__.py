@@ -1,4 +1,5 @@
-"""backtest: a daily backtesting engine for any position-based strategy.
+"""backtest: a daily backtesting engine for any position-based strategy, and the evaluation of a
+family of strategies (walk-forward splits, net PnL scores, the Rademacher haircut).
 
 A tool: an isolated package that takes market data and a strategy as arguments and knows nothing
 about the repository, the bucket or .env. Contract: tools/README.md; conventions the engine must
@@ -23,16 +24,31 @@ calendar, asks the ``Strategy`` what to hold at each close and keeps the books.
 
     # or, for a strategy that is just a weight per symbol per rebalance date:
     res = run_weights(weights, market, costs=BpsCost(5))   # weights: date | SPY | QQQ ...
+
+The evaluation layer (Daniel and Paleologo, ADR-0013) works on numpy arrays: ``walk_forward`` and
+``purged_kfold`` splits, ``net_pnl`` / ``risk_scaled`` / ``information_coefficient`` scores, and
+``ras_lower_bounds`` for a T x N score matrix of every candidate tried.
 """
 
 from __future__ import annotations
 
 from backtest.costs import BpsCost, CostModel, NoCost, PerUnitCost
 from backtest.engine import run
+from backtest.haircut import (
+    annualize,
+    block_means,
+    massart_bound,
+    rademacher,
+    ras_lower_bounds,
+    sharpe_se,
+    subgaussian_lower_bounds,
+)
 from backtest.instruments import Cash, FxPair, Instrument
 from backtest.market import LookaheadError, Market, MarketView
 from backtest.metrics import metrics
+from backtest.pnl import information_coefficient, net_pnl, risk_scaled
 from backtest.result import Result
+from backtest.splits import purged_kfold, walk_forward
 from backtest.strategy import Context, Strategy
 from backtest.weights import TargetWeights, run_weights
 
@@ -52,7 +68,19 @@ __all__ = [
     "Result",
     "Strategy",
     "TargetWeights",
+    "annualize",
+    "block_means",
+    "information_coefficient",
+    "massart_bound",
     "metrics",
+    "net_pnl",
+    "purged_kfold",
+    "rademacher",
+    "ras_lower_bounds",
+    "risk_scaled",
     "run",
     "run_weights",
+    "sharpe_se",
+    "subgaussian_lower_bounds",
+    "walk_forward",
 ]

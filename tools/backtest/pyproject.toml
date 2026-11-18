@@ -1,9 +1,9 @@
 [project]
 name = "backtest"
 version = "0.2.0"
-description = "Daily backtesting engine for any position-based strategy"
+description = "Daily backtesting engine for any position-based strategy, with walk-forward splits and a joint haircut for a strategy family"
 requires-python = ">=3.12,<3.13"
-dependencies = ["polars>=1.30", "pyarrow>=20"]
+dependencies = ["numpy>=2.0", "polars>=1.30", "pyarrow>=20"]
 
 [build-system]
 requires = ["hatchling"]
