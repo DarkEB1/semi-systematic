@@ -44,7 +44,7 @@ Finding for the data-layer owner: Yahoo's daily FX "close" for date D is the pri
 
 Ingest runs here first failed with `RequestTimeTooSkewed`: the Docker Desktop VM clock had drifted after the Mac slept. One failed Cboe run left a partial `run=20261112T170020Z` folder (17 objects) in scratch; it was deleted.
 
-Finding for the data-layer owner: `just scaffold-source` silently skips the registry import once ruff has merged the imports into one line (`from quant.ingest import fred, yahoo`), because the regex in `pull_data.py` expects one module per line; the imports were fixed by hand.
+Finding for the data-layer owner: `just scaffold-source` silently skips the registry import once ruff has merged the imports into one line (`from quant.ingest import fred, yahoo`), because the regex in `pull_data.py` expects one module per line; the imports were fixed by hand. On 2026-11-18 the regex was widened to accept a comma-separated import (one character class), and the pull-data golden (`ai/evals/pull-data/expected.txt`) was updated for the longer source matrix in `ingest.yml`, its only other diff.
 
 Needs a human: `FRED_API_KEY` repository secret before the first nightly run; review of the `catalog/` and `.github/` paths by the data-layer owner.
 
@@ -80,6 +80,9 @@ Needs a human: `FRED_API_KEY` repository secret before the first nightly run; re
 - [.env.example](../../.env.example)
 - [.github/workflows/ingest.yml](../../.github/workflows/ingest.yml)
 - [knowledge/context/vendors.md](../context/vendors.md)
+- [.claude/skills/pull-data/pull_data.py](../../.claude/skills/pull-data/pull_data.py)
+- [ai/evals/pull-data/expected.txt](../../ai/evals/pull-data/expected.txt)
+- [knowledge/INDEX.md](../INDEX.md)
 
 ## Files relied on
 
