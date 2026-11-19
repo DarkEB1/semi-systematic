@@ -1,7 +1,7 @@
 [project]
 name = "backtest"
-version = "0.1.0"
-description = "Backtesting loop shared by experiments (reserved; filled on second use)"
+version = "0.2.0"
+description = "Daily backtesting engine for any position-based strategy"
 requires-python = ">=3.12,<3.13"
 dependencies = ["polars>=1.30", "pyarrow>=20"]
 

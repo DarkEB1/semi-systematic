@@ -3,7 +3,7 @@
 Every folder here is a tool: an isolated Python package that can be imported or instantiated
 wherever it is needed, in this repo or another, without dragging the rest of the repo along. The
 repo consumes tools; tools never consume the repo. `brain` (the retrieval index) is the first
-real one, `backtest` is the reserved slot for the first shared backtesting loop, and the set is
+real one, `backtest` is the daily backtesting engine (ADR-0010), and the set is
 meant to grow: an optimiser, a risk model, a calendar library, a vendor client, each as its own
 package.
 
