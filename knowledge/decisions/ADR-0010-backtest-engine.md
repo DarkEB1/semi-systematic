@@ -7,7 +7,7 @@ authors: [lucasvilliers]
 owner: lucasvilliers
 status: proposed
 tags: [backtest, infra, costs, fx]
-related: [ADR-0002-tools-are-isolated-packages, ADR-0003-isolation-principle, conventions]
+related: [ADR-0002-tools-are-isolated-packages, ADR-0003-isolation-principle, conventions, 2026-11-15-fund-setup-trade-ideas-and-structure]
 ---
 
 # ADR-0010: fill tools/backtest with a daily position-based engine before its second use
@@ -15,7 +15,8 @@ related: [ADR-0002-tools-are-isolated-packages, ADR-0003-isolation-principle, co
 ## Context
 
 `tools/backtest` was a reserved slot to be filled on the second experiment that needs a backtest
-(root `AGENTS.md`, reuse rule). The 2026-11-15 meeting assigned a backtesting framework to Alec and
+(root `AGENTS.md`, reuse rule). The
+[2026-11-15 meeting](../meetings/2026-11-15-fund-setup-trade-ideas-and-structure.md) assigned a backtesting framework to Alec and
 Lucas as a team deliverable, with strategies of different shapes already in view: FX carry and
 momentum on the ingested FRED, ECB and BCB data, micro-cap shorts, and path-dependent relative
 value (entries on a z-score, exits on convergence or a time stop). Writing the loop inside one

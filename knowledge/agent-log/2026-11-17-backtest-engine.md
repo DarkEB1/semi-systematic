@@ -76,8 +76,10 @@ rates for more currencies, CDI compounding.
 - [knowledge/decisions/ADR-0003-isolation-principle.md](../decisions/ADR-0003-isolation-principle.md)
 - [knowledge/templates/decision.md](../templates/decision.md)
 - [knowledge/templates/agent-log.md](../templates/agent-log.md)
+- [knowledge/meetings/2026-11-15-fund-setup-trade-ideas-and-structure.md](../meetings/2026-11-15-fund-setup-trade-ideas-and-structure.md)
 
 ## PR
 
-None yet: @lucasvilliers has no write access to the repository; the branch waits for access or a
-fork, after the onboarding PR.
+Branch `feat/backtest`, rebased on main after the onboarding
+([#13](https://github.com/DarkEB1/semi-systematic/pull/13)) and data sources
+([#14](https://github.com/DarkEB1/semi-systematic/pull/14)) merged; its PR follows.
