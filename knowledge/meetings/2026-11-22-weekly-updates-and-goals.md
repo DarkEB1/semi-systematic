@@ -40,31 +40,31 @@ public.
   [the previous meeting](2026-11-15-fund-setup-trade-ideas-and-structure.md).
 - Lucas: backtesting framework, data ingest, and a manual ingest of Bloomberg data.
 - Eleonora: researched the legal set-up. An LLP is the structure to look into; the next step is to
-  speak to a solicitor and a tax adviser.
-- Eduardo: spoke with Julian, an industry contact, who gave tips on how to start setting up.
-  Eduardo is sending the tips document round.
+  speak to a solicitor, the taxman and the like.
+- Eduardo: spoke with an industry contact, who gave tips on how to start setting up. A tips
+  document from that call is being sent round.
 
 ### Open question
 
-- Who is working on the project, and who is involved? Raised as a general point and not answered
-  on the call; Eduardo gauging interest in the chat is the first step.
+- Who is working on the project, and who is involved? Raised as a general point.
 
 ## Decisions
 
-- Look into setting up as an LLP; nothing is committed until a solicitor and a tax adviser have been consulted (minor)
+- Look into setting up as an LLP (minor)
 
 ## Actions
 
 Owners are first names until they have handles. The goals were set for next week, so they are
-dated 2026-11-29; items without a date had none set.
+dated 2026-11-29; items without a date had none set. People outside the group are not named here:
+the industry contact is the one Eduardo spoke to, the second contact is the one Nick is to reach.
 
-- [ ] Set up calls with Julian and Victor: unassigned (@TODO-owner, TODO-date)
+- [ ] Set up calls with the industry contact and a second contact: unassigned (@TODO-owner, TODO-date)
 - [ ] Risk framework on the dashboard (@DarkEB1, 2026-11-29)
-- [ ] Contact Victor to set up the call (@DarkEB1, 2026-11-29)
+- [ ] Contact the second contact to set up the call (@DarkEB1, 2026-11-29)
 - [ ] Get the backtesting framework merged, then start testing strategies and add data (@lucasvilliers, 2026-11-29)
 - [ ] UBS strat: Eduardo (@TODO-owner, 2026-11-29)
 - [ ] Set up the research directory, with Nick: Eduardo (@TODO-owner, 2026-11-29)
 - [ ] Gauge interest in the chat: Eduardo (@TODO-owner, 2026-11-29)
-- [ ] Send the tips document from the call with Julian round: Eduardo (@TODO-owner, TODO-date)
+- [ ] Send the tips document from the call with the industry contact round: sender not recorded (@TODO-owner, TODO-date)
 - [ ] Legal set-up, continued: Eleonora (@TODO-owner, 2026-11-29)
 - [ ] Reach out to IB: Eleonora (@TODO-owner, 2026-11-29)

@@ -24,10 +24,13 @@ and pushed, using the meeting-notes skill.
 - First names for Eleonora and Eduardo, with a visible `@TODO-owner` on their actions: neither has
   a handle in `team.yaml`, and the 2026-11-15 minutes set that precedent. Nick and Lucas carry
   their handles.
-- The firm Eduardo's contact works at is left out: the repository is public, and a first name plus
-  an employer identifies a person outside the group. The contact is "an industry contact".
+- People outside the group are not named, and the firm Eduardo's contact works at is left out:
+  the repository is public and the skill allows no personal data beyond handles. The 2026-11-15
+  precedent covers members' first names only. They are "the industry contact" and "a second
+  contact"; the first draft named them and the reviewer subagent caught it.
+- The notes do not say who sends the tips document, so that action has no owner.
 - "Goals for next week" became actions dated 2026-11-29, one week after the call. The two items
-  with no stated timing (the calls with Julian and Victor, the tips document) keep `TODO-date`.
+  with no stated timing (the calls with the two contacts, the tips document) keep `TODO-date`.
 - No ADR. The LLP line is a direction to investigate, with nothing committed and no cost yet, so
   it is `(minor)`. An ADR is due when the structure is chosen.
 - "UBS strat" and "IB" are kept as written; the notes do not say what either stands for.
@@ -38,9 +41,11 @@ and pushed, using the meeting-notes skill.
 ## Summary
 
 Wrote the meeting file from the pasted notes and regenerated `knowledge/INDEX.md`. `just search`
-found nothing on the LLP, Kelly sizing or Bloomberg topics, and only the 2026-11-15 meeting for the
-backtesting framework. Needs a human: handles for Eleonora and Eduardo, an owner for the calls
-with Julian and Victor, and an answer to who is involved in the project.
+returned the 2026-11-15 meeting for the backtesting framework and nothing for the LLP, Kelly sizing
+and Bloomberg phrasings tried. The 2026-11-15 meeting does cover the Kelly sizing cap and holds the
+open legal set-up action this call continues; it is linked. No ADR covers any of the topics. Needs
+a human: handles for Eleonora and Eduardo, an owner for the calls with the two contacts and for the
+tips document, and an answer to who is involved in the project.
 
 ## Files touched
 
