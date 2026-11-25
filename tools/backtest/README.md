@@ -102,11 +102,19 @@ Its functions take numpy arrays and return numpy arrays; `family.py` feeds them 
 | `scores(results, start)` | `date \| candidate...`: each `Result`'s daily NAV return on the dates all share |
 | `evaluate(results, kappa, delta, B, seed, start, periods_per_year)` | `ras_lower_bounds` over `scores`, one row per candidate, best bound first, and R; raises if a score exceeds `kappa` |
 
-The engine books decision t at t+1, so `scores` already follows the timing convention below. With
-daily NAV returns, `kappa` (the worst possible day) sits far above the daily vol and the
-estimation term dominates the bound: on 21 years of FX momentum it was 176% a year against a 2R
-of 1.7%. Read `R` on its own as the cost of the search, and expect the bound to clear zero only for
-high Sharpe ratios or long histories.
+The engine books decision t at t+1, so `scores` already follows the timing convention below.
+
+How to read it, on a real example: long BRL carry (short USDBRL when the CDI is above the EFFR),
+alone or with a 50 to 250-day trend filter, plus one variant picking its filter walk-forward;
+seven candidates, 2005-12 to 2026-11, net of 5 bp. Sharpe ratios run from 0.38 to 0.48 (4 to 5%
+a year). `2R`, the cost of having searched, is 3.6% a year: the filters' Sharpe gain of about 0.1
+is within it, and the walk-forward picker never settles on one filter. With a sub-Gaussian proxy
+the best lower bound is about -8% a year: inconclusive, not a loss. Over 20 years of daily data a
+candidate needs an annual Sharpe of about 0.8 to 1 to clear zero.
+
+On daily NAV returns, use `R` and `subgaussian_lower_bounds`: the bounded bound of `evaluate`
+needs `kappa` to cover the worst day (10% for USDBRL), far above the daily vol (1%), so its
+estimation term alone exceeds 100% a year and the bound says nothing.
 
 ### The sequence
 

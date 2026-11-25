@@ -58,7 +58,7 @@ sandbox experiment before this ADR.
 ## Consequences
 
 - An experiment backtests by building a `Market` from what it loaded and calling `run` or `run_weights`; it never writes its own loop or cost code. A strategy that is selected among variants is reported with `evaluate` over every variant tried.
-- On real data (2026-11-25 sandbox, seven FX momentum candidates, 2005 to 2026) `2R` was 1.7% a year but the estimation term with `kappa = 0.05` was 176% a year: with daily NAV returns the bounded theorem is dominated by `kappa`, far above the daily vol. A less conservative score (`risk_scaled`, `subgaussian_lower_bounds`, monthly blocks) is a follow-up.
+- On real data (2026-11-25 sandbox, seven BRL carry candidates, 2005 to 2026, Sharpe 0.38 to 0.48) the search cost `2R` was 3.6% a year and the sub-Gaussian lower bound about -8% a year: inconclusive, as expected for a Sharpe below about 0.8 over 20 years. The bounded theorem is not informative on daily NAV returns, its `kappa` (the worst day) being ten times the daily vol; a calibrated or risk-scaled score is a follow-up.
 - A new asset class is an `Instrument` subclass with its tests; the engine does not change. A new cost shape is a `CostModel` subclass.
 - Known limits, each a follow-up rather than part of this decision: no short-borrow cost (needed by the micro-cap shorts), no per-member books or position limits (the idea pods), no risk-based sizing (Kelly), short rates only for USD, EUR and BRL, carry as simple interest on 360 days for every currency, no dividends, margin or interest on cash, daily only.
 - The TODO in `conventions.md` ("confirm each convention against the first backtest") can now be checked; a change it finds is a new ADR.

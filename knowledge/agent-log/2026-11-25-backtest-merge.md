@@ -30,13 +30,13 @@ meeting: the framework merged by 2026-11-29. No skill or loop.
 ## Summary
 
 Done: one package, 119 tests (103 engine, 11 lecture, 5 bridge), and a sandbox run on real data
-(`research/test-data/experiments/2026-11-25-backtest-family`, not tracked): six FX momentum
-lookbacks plus one walk-forward lookback picker, 2005-12-22 to 2026-11-06, net of costs. Best
-annual Sharpe 0.13 (126 days); the walk-forward picker -0.15, its choice spread over every
-lookback. R gives a search cost 2R of 1.7% a year (correlated variants cost little); the
-estimation term with `kappa = 0.05` is 176% a year, so every bound is about -177% a year. With
-daily NAV returns the bounded theorem is dominated by `kappa`; a less conservative score is a
-follow-up.
+(`research/test-data/experiments/2026-11-25-backtest-family-carry`, not tracked): BRL carry,
+plain or with a 50 to 250-day trend filter, plus one walk-forward filter picker, 2005-12-23 to
+2026-11-06, net of 5 bp. Sharpe 0.38 to 0.48; the filters cut vol from 16% to 10% and the drawdown
+from -44% to -27%. Search cost 2R = 3.6% a year, sub-Gaussian lower bound about -8% a year
+(inconclusive). The bounded theorem is not informative on daily NAV returns (`kappa` ten times the
+daily vol); a risk-scaled or calibrated score is a follow-up. A first run on FX momentum (Sharpe
+0.13 at best) showed no edge.
 
 Needs a human: @DarkEB1 to review PR #15 (his `start-here.md` line was shortened to name both
 halves); close `tools/backtest-framework` once merged.
