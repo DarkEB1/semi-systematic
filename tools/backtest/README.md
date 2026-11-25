@@ -100,7 +100,19 @@ Its functions take numpy arrays and return numpy arrays; `family.py` feeds them 
 |---|---|
 | `walk_forward_weights(fit, market, train, test, gap, expanding)` | a weight table where `fit` sees the market at the last training close and its rule the market at each decision close; `None` holds |
 | `scores(results, start)` | `date \| candidate...`: each `Result`'s daily NAV return on the dates all share |
-| `evaluate(results, kappa, delta, B, seed, start, periods_per_year)` | `ras_lower_bounds` over `scores`, one row per candidate, best bound first, and R; raises if a score exceeds `kappa` |
+| `evaluate(results, kappa, delta, B, seed, start, periods_per_year)` | `ras_lower_bounds` over `scores` (or a `scores` table), one row per candidate, best bound first, and R; raises if a score exceeds `kappa` |
+| `save_scores(results, directory)` | each result's daily returns to `directory/<name>.parquet`; a rerun under the same name replaces it |
+| `load_scores(*directories, start)` | the `scores` table of every saved candidate in those directories; a name in two of them raises |
+
+A family tried over several runs or experiments: each run saves its candidates, e.g. to its own
+`outputs/scores/`, and the evaluation loads them all, so the variants of last week count too:
+
+```python
+save_scores(results, HERE / "outputs" / "scores")
+table, R = evaluate(load_scores(dir_monday, dir_wednesday), kappa=0.12, start=first_test_date)
+```
+
+`outputs/` is gitignored, so saved scores stay on the machine that ran them.
 
 The engine books decision t at t+1, so `scores` already follows the timing convention below.
 

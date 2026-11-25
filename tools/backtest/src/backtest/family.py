@@ -9,6 +9,8 @@ candidate tried. Three functions join them:
   table to ``run_weights`` with ``start`` at its first date.
 - ``scores``: the daily NAV returns of each ``Result``, on the dates they all share.
 - ``evaluate``: ``ras_lower_bounds`` over those scores, one row per candidate.
+- ``save_scores`` / ``load_scores``: keep each candidate's scores as a file, so a family can be
+  evaluated across runs and experiments. The caller chooses the directory.
 
 Timing needs no shift: the engine fills a decision at the close of t and books its P&L at t+1, so
 row t+1 of ``scores`` is decision t meeting outcome t+1, the lecture's convention (``pnl.py``).
@@ -18,6 +20,7 @@ from __future__ import annotations
 
 import datetime as dt
 import math
+import pathlib
 from collections.abc import Callable, Mapping
 
 import numpy as np
@@ -77,8 +80,44 @@ def scores(results: Mapping[str, Result], *, start: dt.date | None = None) -> pl
     return out.sort("date")
 
 
+def save_scores(results: Mapping[str, Result], directory: str | pathlib.Path) -> list[pathlib.Path]:
+    """Write each result's daily NAV returns to ``directory/<name>.parquet`` (``date | ret``).
+
+    Rerunning a candidate under the same name replaces its file: one name, one variant.
+    """
+    out = pathlib.Path(directory)
+    out.mkdir(parents=True, exist_ok=True)
+    paths = []
+    for name, res in results.items():
+        path = out / f"{name}.parquet"
+        res.daily.select("date", res.returns.alias("ret")).write_parquet(path)
+        paths.append(path)
+    return paths
+
+
+def load_scores(*directories: str | pathlib.Path, start: dt.date | None = None) -> pl.DataFrame:
+    """The ``scores`` table of every file ``save_scores`` wrote in ``directories``, on the dates
+    they all share. A name found in two directories raises: two variants cannot share one."""
+    found: dict[str, pathlib.Path] = {}
+    for d in directories:
+        for path in sorted(pathlib.Path(d).glob("*.parquet")):
+            if path.stem in found:
+                raise ValueError(f"load_scores: {path.stem!r} in {found[path.stem].parent} and {d}")
+            found[path.stem] = path
+    if not found:
+        raise ValueError("load_scores: no score files")
+    out: pl.DataFrame | None = None
+    for name, path in found.items():
+        col = pl.read_parquet(path).rename({"ret": name})
+        out = col if out is None else out.join(col, on="date", how="inner")
+    assert out is not None
+    if start is not None:
+        out = out.filter(pl.col("date") >= start)
+    return out.sort("date")
+
+
 def evaluate(
-    results: Mapping[str, Result],
+    results: Mapping[str, Result] | pl.DataFrame,
     *,
     kappa: float,
     delta: float = 0.01,
@@ -89,14 +128,18 @@ def evaluate(
 ) -> tuple[pl.DataFrame, float]:
     """The Rademacher haircut of every candidate in ``results``, jointly (``ras_lower_bounds``).
 
-    ``results`` must hold every candidate tried, the abandoned ones included. ``kappa`` bounds
+    ``results`` must hold every candidate tried, the abandoned ones included: ``Result`` objects,
+    or a ``scores`` table (from ``scores`` or ``load_scores``). ``kappa`` bounds
     the absolute daily return of every candidate on every date and is chosen before looking; a
     score above it raises, since the bound would not hold. Returns the table
     ``candidate | days | mean | sharpe | lower_bound | ann_mean | ann_lower_bound`` (means are
     daily returns, ``ann_`` columns times ``periods_per_year``, ``sharpe`` annualised), best lower
     bound first, and R. A lower bound at or below zero is inconclusive, not a loss.
     """
-    table = scores(results, start=start)
+    if isinstance(results, pl.DataFrame):
+        table = results if start is None else results.filter(pl.col("date") >= start)
+    else:
+        table = scores(results, start=start)
     names = [c for c in table.columns if c != "date"]
     X = table.select(names).to_numpy().astype(np.float64)
     if X.shape[0] < 2:

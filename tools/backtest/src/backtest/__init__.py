@@ -36,7 +36,7 @@ from __future__ import annotations
 
 from backtest.costs import BpsCost, CostModel, NoCost, PerUnitCost
 from backtest.engine import run
-from backtest.family import evaluate, scores, walk_forward_weights
+from backtest.family import evaluate, load_scores, save_scores, scores, walk_forward_weights
 from backtest.haircut import (
     annualize,
     block_means,
@@ -75,6 +75,7 @@ __all__ = [
     "block_means",
     "evaluate",
     "information_coefficient",
+    "load_scores",
     "massart_bound",
     "metrics",
     "net_pnl",
@@ -84,6 +85,7 @@ __all__ = [
     "risk_scaled",
     "run",
     "run_weights",
+    "save_scores",
     "scores",
     "sharpe_se",
     "subgaussian_lower_bounds",

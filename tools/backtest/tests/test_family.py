@@ -10,8 +10,10 @@ from backtest import (
     LookaheadError,
     Market,
     evaluate,
+    load_scores,
     ras_lower_bounds,
     run_weights,
+    save_scores,
     scores,
     walk_forward_weights,
 )
@@ -94,3 +96,24 @@ def _table(rows: dict[dt.date, float], symbol: str):
     import polars as pl
 
     return pl.DataFrame([{"date": d, symbol: w} for d, w in rows.items()])
+
+
+def test_saved_scores_reload_across_directories(tmp_path) -> None:
+    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000)
+    b = run_weights(_table({DAYS[0]: 1.0}, "QQQ"), MARKET, capital=1000)
+    save_scores({"spy": a}, tmp_path / "monday")
+    save_scores({"qqq": b}, tmp_path / "wednesday")
+    loaded = load_scores(tmp_path / "monday", tmp_path / "wednesday")
+    assert loaded.equals(scores({"spy": a, "qqq": b}).select(loaded.columns))
+    t1, r1 = evaluate(loaded, kappa=0.25, B=500, start=DAYS[1])
+    t2, r2 = evaluate({"spy": a, "qqq": b}, kappa=0.25, B=500, start=DAYS[1])
+    assert r1 == pytest.approx(r2)
+    assert t1.equals(t2)
+
+
+def test_one_name_in_two_directories_raises(tmp_path) -> None:
+    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000)
+    save_scores({"spy": a}, tmp_path / "x")
+    save_scores({"spy": a}, tmp_path / "y")
+    with pytest.raises(ValueError, match="'spy'"):
+        load_scores(tmp_path / "x", tmp_path / "y")

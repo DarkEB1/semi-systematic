@@ -46,7 +46,9 @@ by instrument and cause; `metrics` summarises it. The bridge (`family.py`) has t
 weight table, its `fit` seeing the market frozen at the last training close and its rule frozen at
 each decision close (`LookaheadError` otherwise); `scores` puts the daily NAV returns of every
 `Result` on their common dates; `evaluate` runs `ras_lower_bounds` over them and refuses a `kappa`
-the scores exceed. No shift is needed: the engine books decision t at t+1, ADR-0013's convention.
+the scores exceed; `save_scores` and `load_scores` keep each candidate's daily returns as one
+parquet file per name, in a directory the caller passes, so a family can be evaluated across runs
+and experiments. No shift is needed: the engine books decision t at t+1, ADR-0013's convention.
 It follows `conventions.md` (simple returns, no
 forward-filled prices, flat half-spread by bucket, one reporting currency) and adds no dependency
 (polars and pyarrow were already declared; numpy comes from ADR-0013).
