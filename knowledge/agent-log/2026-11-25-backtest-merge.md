@@ -1,0 +1,67 @@
+---
+id: 2026-11-25-backtest-merge
+type: agent-log
+title: "Merge the daily engine and the Paleologo evaluation into one tools/backtest"
+date: 2026-11-25
+authors: [Claude]
+owner: lucasvilliers
+status: draft
+tags: [backtest, infra]
+related: [ADR-0014-backtest-engine, ADR-0013-backtest-tool-from-daniel-paleologo, 2026-11-17-backtest-engine, 2026-11-18-backtest-tool]
+---
+
+# Merge the daily engine and the Paleologo evaluation into one tools/backtest
+
+## Task
+
+@lucasvilliers asked to merge the two backtesters built in parallel in `tools/backtest`: the daily
+engine (branch `feat/backtest`, PR #15) and @DarkEB1's walk-forward and Rademacher haircut layer
+(branch `tools/backtest-framework`), agreed between them beforehand. Goal of the 2026-11-22
+meeting: the framework merged by 2026-11-29. No skill or loop.
+
+## Decisions with justification
+
+- @DarkEB1's commit cherry-picked as is (authorship kept), conflicts resolved as the union: both APIs exported, `numpy`, `polars` and `pyarrow` declared, `test_import.py` kept. His modules stay flat (`splits.py`, `pnl.py`, `haircut.py`) rather than moved into a subpackage: no change to his imports or tests, and no clash with the name `evaluate`.
+- A bridge, `family.py`, rather than reshaping either side: `walk_forward_weights` (fit on a `MarketView` frozen at the last training close, rule on a view frozen at each decision close, so lookahead raises), `scores` (daily NAV returns on common dates) and `evaluate` (`ras_lower_bounds` plus a per-candidate table). No timing shift: the engine already books decision t at t+1.
+- `evaluate` raises when a score exceeds `kappa`, since the bounded theorem would not hold; `ras_lower_bounds` itself is unchanged.
+- ADR-0010 renumbered ADR-0014 (0010 to 0012 are taken on `research/defi-repo-replication`); the file was never on `main`, so no link outside this branch breaks. It now records the merge and the bridge and leaves ADR-0013 standing.
+- Version 0.3.0: new public functions on top of both 0.2.0 releases.
+
+## Summary
+
+Done: one package, 119 tests (103 engine, 11 lecture, 5 bridge), and a sandbox run on real data
+(`research/test-data/experiments/2026-11-25-backtest-family`, not tracked): six FX momentum
+lookbacks plus one walk-forward lookback picker, 2005-12-22 to 2026-11-06, net of costs. Best
+annual Sharpe 0.13 (126 days); the walk-forward picker -0.15, its choice spread over every
+lookback. R gives a search cost 2R of 1.7% a year (correlated variants cost little); the
+estimation term with `kappa = 0.05` is 176% a year, so every bound is about -177% a year. With
+daily NAV returns the bounded theorem is dominated by `kappa`; a less conservative score is a
+follow-up.
+
+Needs a human: @DarkEB1 to review PR #15 (his `start-here.md` line was shortened to name both
+halves); close `tools/backtest-framework` once merged.
+
+## Files touched
+
+- [tools/backtest/src/backtest/family.py](../../tools/backtest/src/backtest/family.py)
+- [tools/backtest/src/backtest/__init__.py](../../tools/backtest/src/backtest/__init__.py)
+- [tools/backtest/tests/test_family.py](../../tools/backtest/tests/test_family.py)
+- [tools/backtest/tests/test_import.py](../../tools/backtest/tests/test_import.py)
+- [tools/backtest/pyproject.toml](../../tools/backtest/pyproject.toml)
+- [tools/backtest/README.md](../../tools/backtest/README.md)
+- [tools/README.md](../../tools/README.md)
+- [knowledge/decisions/ADR-0014-backtest-engine.md](../decisions/ADR-0014-backtest-engine.md)
+- [knowledge/agent-log/2026-11-17-backtest-engine.md](2026-11-17-backtest-engine.md)
+- [knowledge/context/start-here.md](../context/start-here.md)
+- [uv.lock](../../uv.lock)
+
+## Files relied on
+
+- [knowledge/decisions/ADR-0013-backtest-tool-from-daniel-paleologo.md](../decisions/ADR-0013-backtest-tool-from-daniel-paleologo.md)
+- [tools/backtest/src/backtest/haircut.py](../../tools/backtest/src/backtest/haircut.py)
+- [tools/backtest/src/backtest/splits.py](../../tools/backtest/src/backtest/splits.py)
+- [tools/AGENTS.md](../../tools/AGENTS.md)
+
+## PR
+
+[#15](https://github.com/DarkEB1/semi-systematic/pull/15)

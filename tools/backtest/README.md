@@ -2,10 +2,12 @@
 
 A daily backtesting engine for any position-based strategy: a strategy says what it wants to hold
 after each close, the engine fills it, pays the costs, values the book every day and reports the
-P&L, split by instrument and cause. It is a tool in the sense of [tools/README.md](../README.md):
+P&L, split by instrument and cause; then it evaluates the whole family of variants that was tried,
+with a haircut for the search (Daniel and Paleologo). It is a tool in the sense of [tools/README.md](../README.md):
 it takes market data and a strategy as arguments and never reads the bucket, `.env` or the
-repository. The design and its exception to the second-use rule are
-[ADR-0010](../../knowledge/decisions/ADR-0010-backtest-engine.md).
+repository. The engine and the bridge are
+[ADR-0014](../../knowledge/decisions/ADR-0014-backtest-engine.md), the evaluation layer
+[ADR-0013](../../knowledge/decisions/ADR-0013-backtest-tool-from-daniel-paleologo.md).
 
 ## Use
 
@@ -37,6 +39,26 @@ metrics(res, periods_per_year=260)  # returns, vol, Sharpe, drawdown, turnover, 
 
 The experiment loads the data (through `quant.data`) and builds the `Market`; the engine sees
 nothing else.
+
+Then evaluate every variant tried, out of sample, in one haircut:
+
+```python
+from backtest import evaluate, walk_forward_weights
+
+
+def fit(view, window):  # view: market frozen at the last training close
+    lookback = choose_on(view, window)  # the caller's model
+    return lambda today: signal(today, lookback)  # today: market frozen at the decision close
+
+
+results = {}
+for name, f in candidates.items():  # every variant, the abandoned ones included
+    w = walk_forward_weights(f, market, train=750, test=21)
+    results[name] = run_weights(w, market, instruments=..., start=w["date"][0], costs=costs)
+
+table, R = evaluate(results, kappa=0.05, delta=0.01, seed=0, start=first_test_date)
+table  # candidate | days | mean | sharpe | lower_bound | ann_mean | ann_lower_bound
+```
 
 ## How it works
 
@@ -72,7 +94,19 @@ unit of `USDBRL` is 1 BRL owed, so a long earns `1 - S0/S1` per dollar; carry ac
 The evaluation layer comes from one source: Daniel and Paleologo, "Backtesting: Evaluating
 Excess Returns" (FINC B8420 Quantitative Investing, lecture 6, Fall 2026), and goes no further
 than that lecture ([ADR-0013](../../knowledge/decisions/ADR-0013-backtest-tool-from-daniel-paleologo.md)).
-It takes numpy arrays and returns numpy arrays.
+Its functions take numpy arrays and return numpy arrays; `family.py` feeds them from the engine:
+
+| name | what it does |
+|---|---|
+| `walk_forward_weights(fit, market, train, test, gap, expanding)` | a weight table where `fit` sees the market at the last training close and its rule the market at each decision close; `None` holds |
+| `scores(results, start)` | `date \| candidate...`: each `Result`'s daily NAV return on the dates all share |
+| `evaluate(results, kappa, delta, B, seed, start, periods_per_year)` | `ras_lower_bounds` over `scores`, one row per candidate, best bound first, and R; raises if a score exceeds `kappa` |
+
+The engine books decision t at t+1, so `scores` already follows the timing convention below. With
+daily NAV returns, `kappa` (the worst possible day) sits far above the daily vol and the
+estimation term dominates the bound: on 21 years of FX momentum it was 176% a year against a 2R
+of 1.7%. Read `R` on its own as the cost of the search, and expect the bound to clear zero only for
+high Sharpe ratios or long histories.
 
 ### The sequence
 
@@ -146,6 +180,8 @@ compounds on 252); a cross is shown as its two legs; one book per run (no per-me
 
 ## Tests
 
-`uv run pytest tools/backtest/tests -q`: about a hundred tests on hand-computed fixtures, no
-network or bucket. Each module has its own file; `test_weights.py` checks that a weight table and
-the equivalent hand-written `Strategy` give identical results.
+`uv run pytest tools/backtest/tests -q`: about 120 tests on hand-computed fixtures, no network or
+bucket. Each module has its own file; `test_weights.py` checks that a weight table and the
+equivalent hand-written `Strategy` give identical results; `test_backtest.py` pins the lecture's
+worked numbers; `test_family.py` checks that walk-forward fits cannot see the future and that
+`evaluate` equals `ras_lower_bounds` on the same matrix.

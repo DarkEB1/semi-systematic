@@ -27,13 +27,16 @@ calendar, asks the ``Strategy`` what to hold at each close and keeps the books.
 
 The evaluation layer (Daniel and Paleologo, ADR-0013) works on numpy arrays: ``walk_forward`` and
 ``purged_kfold`` splits, ``net_pnl`` / ``risk_scaled`` / ``information_coefficient`` scores, and
-``ras_lower_bounds`` for a T x N score matrix of every candidate tried.
+``ras_lower_bounds`` for a T x N score matrix of every candidate tried. ``family`` joins the two
+(ADR-0014): ``walk_forward_weights`` builds an out-of-sample weight table, ``evaluate`` haircuts
+the ``Result`` of every candidate tried.
 """
 
 from __future__ import annotations
 
 from backtest.costs import BpsCost, CostModel, NoCost, PerUnitCost
 from backtest.engine import run
+from backtest.family import evaluate, scores, walk_forward_weights
 from backtest.haircut import (
     annualize,
     block_means,
@@ -52,7 +55,7 @@ from backtest.splits import purged_kfold, walk_forward
 from backtest.strategy import Context, Strategy
 from backtest.weights import TargetWeights, run_weights
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = [
     "BpsCost",
     "Cash",
@@ -70,6 +73,7 @@ __all__ = [
     "TargetWeights",
     "annualize",
     "block_means",
+    "evaluate",
     "information_coefficient",
     "massart_bound",
     "metrics",
@@ -80,7 +84,9 @@ __all__ = [
     "risk_scaled",
     "run",
     "run_weights",
+    "scores",
     "sharpe_se",
     "subgaussian_lower_bounds",
     "walk_forward",
+    "walk_forward_weights",
 ]

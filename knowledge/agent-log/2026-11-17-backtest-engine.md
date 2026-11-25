@@ -7,7 +7,7 @@ authors: [Claude]
 owner: lucasvilliers
 status: draft
 tags: [backtest, infra, costs, fx]
-related: [ADR-0010-backtest-engine]
+related: [ADR-0014-backtest-engine]
 ---
 
 # Build the daily backtesting engine in tools/backtest
@@ -26,7 +26,7 @@ onboarding branch.
 - One accounting currency carried by `Market`, USD by default per `conventions.md`; foreign-currency prices are converted at each day's spot and a cross is held as its two legs, so the carry adds up to the cross's own rate differential. The gain of an unrebalanced cross stays in the position, which is the trade's real economics.
 - Missing data is refused, never filled: a duplicate (date, symbol), a missing cost entry, a missing rate or conversion spot all raise. On real data this caught EURUSD present in both FRED and ECB.
 - No ADR edits to files owned by @DarkEB1 (`start-here.md`, `conventions.md`): their stale lines are listed for the owner instead, per the agent-channel rule.
-- The exception to the second-use rule is an ADR (ADR-0010, `status: proposed`) for @DarkEB1 to accept or reject.
+- The exception to the second-use rule is an ADR (first ADR-0010, now ADR-0014, `status: proposed`) for @DarkEB1 to accept or reject.
 
 ## Summary
 
@@ -40,7 +40,7 @@ snapshots) ran FX carry and momentum on the ingested data, 2003 to 2026: BRL car
 with 0.10x turnover, momentum on 15 pairs net Sharpe 0.08 after costs halved it. Rerunning it after
 the currency change gave identical numbers.
 
-Needs a human: @DarkEB1 to accept ADR-0010, and to update the `backtest` line in `start-here.md`.
+Needs a human: @DarkEB1 to accept ADR-0014, and to update the `backtest` line in `start-here.md`.
 Follow-ups listed in the ADR: short-borrow cost, per-member books and limits, risk-based sizing,
 rates for more currencies, CDI compounding.
 
@@ -62,7 +62,7 @@ rates for more currencies, CDI compounding.
 - [tools/backtest/pyproject.toml](../../tools/backtest/pyproject.toml)
 - [tools/backtest/README.md](../../tools/backtest/README.md)
 - [tools/README.md](../../tools/README.md)
-- [knowledge/decisions/ADR-0010-backtest-engine.md](../decisions/ADR-0010-backtest-engine.md)
+- [knowledge/decisions/ADR-0014-backtest-engine.md](../decisions/ADR-0014-backtest-engine.md)
 - [knowledge/agent-log/2026-11-17-backtest-engine.md](2026-11-17-backtest-engine.md)
 - [knowledge/INDEX.md](../INDEX.md)
 - [uv.lock](../../uv.lock)
