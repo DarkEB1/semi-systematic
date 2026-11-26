@@ -2,8 +2,8 @@
 
 The table is wide: a ``date`` column plus one column per symbol, each cell the fraction of NAV to
 hold after that close (negative is short, null is zero). A row is a rebalance: on its date the
-book is resized to the weights at today's NAV and prices; between rows the quantities are held
-and drift with prices. It runs through the same day loop as any ``Strategy``, so costs,
+book is sized to the weights at today's NAV and prices and filled ``delay`` closes later (1 by
+default, the next close); between rows the quantities are held and drift with prices. It runs through the same day loop as any ``Strategy``, so costs,
 attribution, missing days and ``delay`` behave identically.
 """
 
@@ -64,7 +64,7 @@ def run_weights(
     capital: float = 1_000_000.0,
     start: dt.date | None = None,
     end: dt.date | None = None,
-    delay: int = 0,
+    delay: int = 1,
     costs: CostModel | None = None,
 ) -> Result:
     """Backtest the weight table on ``market``. ``instruments`` maps a column to a non-Cash

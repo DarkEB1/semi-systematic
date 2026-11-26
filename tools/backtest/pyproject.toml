@@ -1,6 +1,6 @@
 [project]
 name = "backtest"
-version = "0.3.0"
+version = "0.4.0"
 description = "Daily backtesting engine for any position-based strategy, with walk-forward splits and a joint haircut for a strategy family"
 requires-python = ">=3.12,<3.13"
 dependencies = ["numpy>=2.0", "polars>=1.30", "pyarrow>=20"]

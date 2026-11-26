@@ -101,7 +101,7 @@ def test_on_a_real_run() -> None:
     days = [dt.date(2026, 3, d) for d in (2, 3, 4, 5)]
     market = Market({"SPY": dict(zip(days, [100.0, 103.0, 101.0, 104.0], strict=True))})
     w = pl.DataFrame({"date": [days[0]], "SPY": [1.0]})
-    res = run_weights(w, market, capital=1000, costs=BpsCost(10))
+    res = run_weights(w, market, capital=1000, costs=BpsCost(10), delay=0)
     m = metrics(res)
     assert m["total_return"] == pytest.approx(res.daily["nav"][-1] / 1000 - 1)
     assert m["total_cost"] == pytest.approx(1.0)  # 1000 traded at 10 bp

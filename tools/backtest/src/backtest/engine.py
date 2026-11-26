@@ -2,8 +2,9 @@
 
 At every close, in this order:
 
-1. **Revalue** what is held: each instrument's mark moves to today's value (kept from the last
-   observed day when today has none), and its cashflow since the previous close is paid.
+1. **Revalue** what is held: the cost model's holding charge since the previous close (short
+   borrow) is paid, each instrument's mark moves to today's value (kept from the last observed day
+   when today has none), and its cashflow since the previous close is paid.
 2. **Fill** orders that are due (decided ``delay`` closes ago) at today's value, paying the
    cost model's charge out of cash.
 3. **Ask** the strategy, through a ``Context`` that cannot see past today, what to hold.
@@ -12,8 +13,9 @@ At every close, in this order:
 
 Accounting is cash plus marks: buying lowers cash, selling raises it, and
 ``nav = cash + sum(quantity * mark)``. A day's P&L is the change in NAV, which covers longs, shorts
-and any instrument the same way. Execution at today's close for a decision taken at today's close
-is the daily convention: the position earns the move from today to the next close, never today's.
+and any instrument the same way. A decision taken at today's close fills at the next close by
+default (``delay=1``, ADR-0015): nobody trades at the close that produced the signal. ``delay=0``
+fills at today's close; either way the position never earns the move that produced the decision.
 """
 
 from __future__ import annotations
@@ -121,6 +123,9 @@ class _Run:
     fills: list[dict[str, Any]] = field(default_factory=list)
 
     def revalue(self, prev: dt.date | None, day: dt.date) -> None:
+        if prev is not None:  # holding costs accrue on the marks of the earlier close
+            for inst, qty in self.book.positions.items():
+                self._charge(inst, self.costs.holding(inst, qty, self.book.marks[inst], prev, day))
         for inst, move, flow in self.book.revalue(self.market, prev, day):
             self._attribute(inst, 0, move)
             self._attribute(inst, 1, flow)
@@ -147,15 +152,25 @@ class _Run:
             if abs(qty) > EPS:
                 self.fill(inst, qty, price, day)
 
-    def fill(self, inst: Instrument, qty: float, price: float, day: dt.date) -> None:
-        cost = self.costs.cost(inst, qty, price, day)
+    def _charge(self, inst: Instrument, cost: float) -> None:
         if cost < 0:
             raise ValueError(f"cost model returned a negative cost for {inst.id}")
-        self.book.fill(inst, qty, price)
         self.book.cash -= cost
-        self.traded += abs(qty * price)
         self.cost += cost
         self._attribute(inst, 2, -cost)
+
+    def fill(
+        self, inst: Instrument, qty: float, price: float, day: dt.date, mark: float | None = None
+    ) -> None:
+        """Trade ``qty`` at ``price``. ``mark`` is today's value when the fill was made away from
+        it (a blotter price): the units move to it at once, and the difference is price P&L."""
+        cost = self.costs.cost(inst, qty, price, day)
+        self.book.fill(inst, qty, price)
+        if mark is not None:
+            self.book.marks[inst] = mark
+            self._attribute(inst, 0, qty * (mark - price))
+        self._charge(inst, cost)
+        self.traded += abs(qty * price)
         self.fills.append(
             {"date": day, "instrument": inst.id, "quantity": qty, "price": price, "cost": cost}
         )
@@ -209,14 +224,15 @@ def run(
     capital: float = 1_000_000.0,
     start: dt.date | None = None,
     end: dt.date | None = None,
-    delay: int = 0,
+    delay: int = 1,
     costs: CostModel | None = None,
 ) -> Result:
     """Backtest ``strategy`` over every day of ``market`` between ``start`` and ``end``.
 
-    ``delay`` is the number of closes between a decision and its fill: 0 fills at the close the
-    decision was taken (the daily convention), 1 at the next close (more conservative).
-    ``costs`` charges every fill (default: free, ``NoCost``).
+    ``delay`` is the number of closes between a decision and its fill: 1, the default, fills at
+    the next close; 0 fills at the close the decision was taken, which assumes the signal was
+    known and the order placed before that close. ``costs`` charges every fill and every day a
+    position is held (default: free, ``NoCost``).
     """
     if delay < 0:
         raise ValueError("run: delay must be >= 0")

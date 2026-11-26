@@ -62,8 +62,8 @@ def test_rule_none_holds_and_missing_symbol_is_zero() -> None:
 
 
 def test_scores_are_nav_returns_on_shared_dates() -> None:
-    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000)
-    b = run_weights(_table({DAYS[2]: 1.0}, "QQQ"), MARKET, capital=1000, start=DAYS[2])
+    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000, delay=0)
+    b = run_weights(_table({DAYS[2]: 1.0}, "QQQ"), MARKET, capital=1000, start=DAYS[2], delay=0)
     s = scores({"spy": a, "qqq": b})
     assert s["date"].to_list() == DAYS[2:]  # inner join
     # spy: 10 shares; 99 -> 105 is +6%; qqq bought at 50 on DAYS[2], first day 0, then +4%
@@ -73,8 +73,8 @@ def test_scores_are_nav_returns_on_shared_dates() -> None:
 
 
 def test_evaluate_matches_ras_on_the_same_matrix() -> None:
-    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000)
-    b = run_weights(_table({DAYS[0]: 1.0}, "QQQ"), MARKET, capital=1000)
+    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000, delay=0)
+    b = run_weights(_table({DAYS[0]: 1.0}, "QQQ"), MARKET, capital=1000, delay=0)
     table, R = evaluate({"spy": a, "qqq": b}, kappa=0.25, B=500, seed=1, start=DAYS[1])
     X = scores({"spy": a, "qqq": b}, start=DAYS[1]).drop("date").to_numpy()
     L, R2 = ras_lower_bounds(X, 0.25, 0.01, 500, 1)
@@ -87,7 +87,7 @@ def test_evaluate_matches_ras_on_the_same_matrix() -> None:
 
 
 def test_evaluate_refuses_a_kappa_the_scores_break() -> None:
-    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000)
+    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000, delay=0)
     with pytest.raises(ValueError, match="exceeds kappa"):
         evaluate({"spy": a}, kappa=0.1)  # SPY falls 20% on the last day
 
@@ -99,8 +99,8 @@ def _table(rows: dict[dt.date, float], symbol: str):
 
 
 def test_saved_scores_reload_across_directories(tmp_path) -> None:
-    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000)
-    b = run_weights(_table({DAYS[0]: 1.0}, "QQQ"), MARKET, capital=1000)
+    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000, delay=0)
+    b = run_weights(_table({DAYS[0]: 1.0}, "QQQ"), MARKET, capital=1000, delay=0)
     save_scores({"spy": a}, tmp_path / "monday")
     save_scores({"qqq": b}, tmp_path / "wednesday")
     loaded = load_scores(tmp_path / "monday", tmp_path / "wednesday")
@@ -112,7 +112,7 @@ def test_saved_scores_reload_across_directories(tmp_path) -> None:
 
 
 def test_one_name_in_two_directories_raises(tmp_path) -> None:
-    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000)
+    a = run_weights(_table({DAYS[0]: 1.0}, "SPY"), MARKET, capital=1000, delay=0)
     save_scores({"spy": a}, tmp_path / "x")
     save_scores({"spy": a}, tmp_path / "y")
     with pytest.raises(ValueError, match="'spy'"):

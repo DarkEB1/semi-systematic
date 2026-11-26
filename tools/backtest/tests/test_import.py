@@ -6,7 +6,7 @@ import backtest
 
 
 def test_import() -> None:
-    assert backtest.__version__ == "0.3.0"
+    assert backtest.__version__ == "0.4.0"
     assert set(backtest.__all__) >= {
         "Cash",
         "Instrument",
@@ -14,6 +14,8 @@ def test_import() -> None:
         "evaluate",
         "load_scores",
         "ras_lower_bounds",
+        "round_trips",
+        "run_blotter",
     }
     for name in backtest.__all__:
         assert hasattr(backtest, name)
