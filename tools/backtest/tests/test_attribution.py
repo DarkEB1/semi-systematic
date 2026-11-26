@@ -32,7 +32,7 @@ class Fixed(Strategy):
 def test_each_cause_lands_on_its_instrument() -> None:
     # Long 10 SPY, short 5 QQQ from Monday, 0.10 per unit traded.
     plan = {D1: {"SPY": 10, "QQQ": -5}}
-    res = run(Fixed(plan), Market({"SPY": SPY, "QQQ": QQQ}), costs=PerUnitCost(0.10), delay=0)
+    res = run(Fixed(plan), Market({"SPY": SPY, "QQQ": QQQ}), costs=PerUnitCost(0.10))
     tue = res.pnl.filter(pl.col("date") == D2).sort("instrument")
     assert_rows(
         tue.select("instrument", "price", "cost", "pnl"),
@@ -44,9 +44,7 @@ def test_each_cause_lands_on_its_instrument() -> None:
 
 def test_attribution_adds_back_to_the_daily_pnl() -> None:
     plan = {D1: {"SPY": 10, "QQQ": -5}, D2: {"SPY": 4, "QQQ": 3}, D3: {}}
-    res = run(
-        Fixed(plan), Market({"SPY": SPY, "QQQ": QQQ}), capital=1000, costs=BpsCost(7), delay=0
-    )
+    res = run(Fixed(plan), Market({"SPY": SPY, "QQQ": QQQ}), capital=1000, costs=BpsCost(7))
     per_day = res.pnl.group_by("date").agg(pl.col("pnl").sum()).sort("date")
     check = res.daily.select("date", "pnl").join(per_day, on="date", suffix="_split")
     for total, split in check.select("pnl", "pnl_split").rows():
@@ -57,7 +55,7 @@ def test_attribution_adds_back_to_the_daily_pnl() -> None:
 
 def test_attribution_summary_over_the_run() -> None:
     plan = {D1: {"SPY": 10, "QQQ": -5}}
-    res = run(Fixed(plan), Market({"SPY": SPY, "QQQ": QQQ}), costs=PerUnitCost(0.10), delay=0)
+    res = run(Fixed(plan), Market({"SPY": SPY, "QQQ": QQQ}), costs=PerUnitCost(0.10))
     summary = res.attribution()
     # SPY 100→101: +10 price, -1 cost; QQQ short 50→51: -5 price, -0.5 cost.
     assert_rows(
@@ -84,12 +82,12 @@ def test_cashflows_are_attributed_separately_from_price() -> None:
         def on_day(self, ctx: Context) -> dict[Instrument, float]:
             return {Coupon(): 2}
 
-    res = run(Hold(), Market({"SPY": SPY}), delay=0)
+    res = run(Hold(), Market({"SPY": SPY}))
     assert res.attribution().select("price", "cashflow", "pnl").row(0) == pytest.approx(
         (-2.0, 2.0, 0.0)
     )
 
 
 def test_a_closed_position_stops_appearing() -> None:
-    res = run(Fixed({D1: {"SPY": 10}, D2: {}}), Market({"SPY": SPY}), delay=0)
+    res = run(Fixed({D1: {"SPY": 10}, D2: {}}), Market({"SPY": SPY}))
     assert res.pnl["date"].to_list() == [D1, D2]  # traded Mon, sold Tue, nothing Wed

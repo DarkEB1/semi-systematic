@@ -96,7 +96,7 @@ def test_no_cost() -> None:
 
 def test_round_trip_costs_twice_the_half_spread() -> None:
     res = run(Fixed({D1: {"SPY": 10}, D2: {}}), Market({"SPY": FLAT}), capital=1000,
-              costs=BpsCost(5), delay=0)  # fmt: skip
+              costs=BpsCost(5))  # fmt: skip
     assert res.trades["cost"].to_list() == pytest.approx([0.5, 0.5])
     assert res.daily["nav"][-1] == pytest.approx(1000 - 2 * 0.5)
 
@@ -104,14 +104,14 @@ def test_round_trip_costs_twice_the_half_spread() -> None:
 def test_three_day_example_with_spread() -> None:
     # The worked example: buy 10 at 100, hold through 103, sell at 101; 0.10 per share each way.
     plan = {D1: {"SPY": 10}, D3: {}}
-    res = run(Fixed(plan), Market({"SPY": SPY}), capital=1000, costs=PerUnitCost(0.10), delay=0)
+    res = run(Fixed(plan), Market({"SPY": SPY}), capital=1000, costs=PerUnitCost(0.10))
     assert res.daily["pnl"].to_list() == pytest.approx([-1.0, 30.0, -21.0])
     assert res.daily["nav"][-1] == pytest.approx(1008.0)
 
 
 def test_daily_columns_report_traded_and_cost() -> None:
     plan = {D1: {"SPY": 10}, D2: {"SPY": 4}}
-    res = run(Fixed(plan), Market({"SPY": SPY}), capital=1000, costs=BpsCost(10), delay=0)
+    res = run(Fixed(plan), Market({"SPY": SPY}), capital=1000, costs=BpsCost(10))
     assert res.daily["traded"].to_list() == pytest.approx([1000.0, 618.0, 0.0])
     assert res.daily["cost"].to_list() == pytest.approx([1.0, 0.618, 0.0])
     assert res.daily["cost"].sum() == pytest.approx(res.trades["cost"].sum())
@@ -119,8 +119,8 @@ def test_daily_columns_report_traded_and_cost() -> None:
 
 def test_gross_minus_costs_is_net() -> None:
     plan = {D1: {"SPY": 10}, D2: {"SPY": -10}, D3: {}}
-    free = run(Fixed(plan), Market({"SPY": SPY}), capital=1000, delay=0)
-    paid = run(Fixed(plan), Market({"SPY": SPY}), capital=1000, costs=BpsCost(5), delay=0)
+    free = run(Fixed(plan), Market({"SPY": SPY}), capital=1000)
+    paid = run(Fixed(plan), Market({"SPY": SPY}), capital=1000, costs=BpsCost(5))
     diff = free.daily["nav"] - paid.daily["nav"]
     assert diff[-1] == pytest.approx(paid.trades["cost"].sum())
     assert pnl_sum(paid) == pytest.approx(pnl_sum(free) - paid.trades["cost"].sum())
@@ -138,9 +138,9 @@ def test_negative_cost_from_a_custom_model_raises() -> None:
             return -1.0
 
     with pytest.raises(ValueError, match="negative cost"):
-        run(Fixed({D1: {"SPY": 1}}), Market({"SPY": SPY}), costs=Rebate(), delay=0)
+        run(Fixed({D1: {"SPY": 1}}), Market({"SPY": SPY}), costs=Rebate())
 
 
 def test_missing_cost_entry_fails_the_run() -> None:
     with pytest.raises(KeyError, match="'SPY'"):
-        run(Fixed({D1: {"SPY": 1}}), Market({"SPY": SPY}), costs=BpsCost({"QQQ": 1}), delay=0)
+        run(Fixed({D1: {"SPY": 1}}), Market({"SPY": SPY}), costs=BpsCost({"QQQ": 1}))

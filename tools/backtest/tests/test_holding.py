@@ -1,4 +1,4 @@
-"""What holding a position costs or pays between closes: short borrow, dividends, the delay."""
+"""What holding a position costs or pays between closes: short borrow and dividends."""
 
 from __future__ import annotations
 
@@ -25,7 +25,6 @@ def test_a_short_pays_borrow_on_the_previous_close() -> None:
         Fixed({D1: {"SPY": -10}}),
         Market({"SPY": SPY}),
         capital=1000,
-        delay=0,
         costs=BorrowCost(360),
     )
     assert res.daily["cost"].to_list() == pytest.approx([0.0, 0.10, 0.103])
@@ -36,20 +35,18 @@ def test_a_short_pays_borrow_on_the_previous_close() -> None:
 def test_borrow_counts_calendar_days() -> None:
     friday, monday = dt.date(2026, 3, 6), dt.date(2026, 3, 9)
     market = Market({"SPY": {friday: 100.0, monday: 100.0}})
-    res = run(Fixed({friday: {"SPY": -10}}), market, capital=1000, delay=0, costs=BorrowCost(360))
+    res = run(Fixed({friday: {"SPY": -10}}), market, capital=1000, costs=BorrowCost(360))
     assert res.daily["cost"].to_list() == pytest.approx([0.0, 0.30])
 
 
 def test_a_long_pays_no_borrow() -> None:
-    res = run(
-        Fixed({D1: {"SPY": 10}}), Market({"SPY": SPY}), capital=1000, delay=0, costs=BorrowCost(360)
-    )
+    res = run(Fixed({D1: {"SPY": 10}}), Market({"SPY": SPY}), capital=1000, costs=BorrowCost(360))
     assert res.daily["cost"].sum() == 0.0
 
 
 def test_borrow_adds_to_a_trading_cost() -> None:
     costs = BpsCost(10) + BorrowCost({"SPY": 360})
-    res = run(Fixed({D1: {"SPY": -10}}), Market({"SPY": SPY}), capital=1000, delay=0, costs=costs)
+    res = run(Fixed({D1: {"SPY": -10}}), Market({"SPY": SPY}), capital=1000, costs=costs)
     assert res.daily["cost"].to_list() == pytest.approx([1.0, 0.10, 0.103])
 
 
@@ -58,7 +55,6 @@ def test_a_short_without_a_borrow_rate_raises() -> None:
         run(
             Fixed({D1: {"SPY": -10}}),
             Market({"SPY": SPY}),
-            delay=0,
             costs=BorrowCost({"QQQ": 50}),
         )
 
@@ -74,20 +70,20 @@ def dividends(amount: float) -> dict[str, Market]:
 
 def test_a_long_receives_the_dividend_on_the_ex_date() -> None:
     market = Market({"SPY": SPY}, extras=dividends(0.5))
-    res = run(Fixed({D1: {"SPY": 10}}), market, capital=1000, delay=0)
+    res = run(Fixed({D1: {"SPY": 10}}), market, capital=1000)
     assert res.daily["pnl"].to_list() == pytest.approx([0.0, 35.0, -20.0])
     assert res.attribution()["cashflow"].to_list() == pytest.approx([5.0])
 
 
 def test_a_short_pays_the_dividend() -> None:
     market = Market({"SPY": SPY}, extras=dividends(0.5))
-    res = run(Fixed({D1: {"SPY": -10}}), market, capital=1000, delay=0)
+    res = run(Fixed({D1: {"SPY": -10}}), market, capital=1000)
     assert res.daily["pnl"].to_list() == pytest.approx([0.0, -35.0, 20.0])
 
 
 def test_bought_on_the_ex_date_gets_nothing() -> None:
     market = Market({"SPY": SPY}, extras=dividends(0.5))
-    res = run(Fixed({D2: {"SPY": 10}}), market, capital=1000, delay=0)
+    res = run(Fixed({D2: {"SPY": 10}}), market, capital=1000)
     assert res.daily["pnl"].to_list() == pytest.approx([0.0, 0.0, -20.0])
 
 
@@ -97,19 +93,12 @@ def test_a_foreign_dividend_is_converted_at_the_ex_date_spot() -> None:
         {"SAP": SPY, "EURUSD": {D1: 1.0, D2: 1.2, D3: 1.2}},
         extras={"dividends": Market({"SAP": {D2: 0.5}})},
     )
-    res = run(Fixed({D1: {sap: 10}}), market, capital=1000, delay=0)
+    res = run(Fixed({D1: {sap: 10}}), market, capital=1000)
     assert res.attribution()["cashflow"].to_list() == pytest.approx([10 * 0.5 * 1.2])
 
 
 def test_dividends_can_be_switched_off() -> None:
     spy = Cash("SPY", dividends=None)
     market = Market({"SPY": SPY}, extras=dividends(0.5))
-    res = run(Fixed({D1: {spy: 10}}), market, capital=1000, delay=0)
+    res = run(Fixed({D1: {spy: 10}}), market, capital=1000)
     assert res.daily["pnl"].to_list() == pytest.approx([0.0, 30.0, -20.0])
-
-
-def test_the_default_fills_at_the_next_close() -> None:
-    # Decided on Monday's close, bought at Tuesday's 103: no P&L until Wednesday.
-    res = run(Fixed({D1: {"SPY": 10}}), Market({"SPY": SPY}), capital=1000)
-    assert res.trades["date"].to_list() == [D2]
-    assert res.daily["pnl"].to_list() == pytest.approx([0.0, 0.0, -20.0])

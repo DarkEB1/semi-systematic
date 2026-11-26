@@ -27,7 +27,7 @@ def fx_run(prices: dict[str, dict[dt.date, float]], w: pl.DataFrame, **kw: objec
     market = Market(prices, extras=extras)
     carry = "rates" if extras else None
     instruments = {s: FxPair(s, rates=carry) for s in prices}
-    return run_weights(w, market, instruments=instruments, capital=NAV, **kw, delay=0)  # type: ignore[arg-type]
+    return run_weights(w, market, instruments=instruments, capital=NAV, **kw)  # type: ignore[arg-type]
 
 
 # --- the pair --------------------------------------------------------------------------------
@@ -126,9 +126,7 @@ def test_missing_currency_rate_raises() -> None:
 def test_no_rates_in_market_raises_when_carry_is_on() -> None:
     market = Market({"USDBRL": {MON: 5.0, TUE: 5.0}})
     with pytest.raises(KeyError, match="not a Market"):
-        run_weights(
-            weights(MON, USDBRL=0.5), market, instruments={"USDBRL": FxPair("USDBRL")}, delay=0
-        )
+        run_weights(weights(MON, USDBRL=0.5), market, instruments={"USDBRL": FxPair("USDBRL")})
 
 
 # --- the worked example ----------------------------------------------------------------------

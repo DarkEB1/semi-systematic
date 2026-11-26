@@ -48,7 +48,7 @@ def test_accounting_currency_travels_with_the_market() -> None:
     m = Market.from_wide(pl.DataFrame({"date": [D1], "EURUSD": [1.25]}), currency="EUR")
     assert m.currency == "EUR"
     assert m.view(D1).currency == "EUR"
-    res = run_weights(wtable({D1: {"EURUSD": 0.0}}), m, instruments=fx(["EURUSD"]), delay=0)
+    res = run_weights(wtable({D1: {"EURUSD": 0.0}}), m, instruments=fx(["EURUSD"]))
     assert res.currency == "EUR"
 
 
@@ -66,7 +66,7 @@ def test_foreign_stock_is_converted_every_day() -> None:
         def on_day(self, ctx: Context) -> dict[Cash, float]:
             return {petr: 10}
 
-    res = run(Hold(), m, capital=1000, delay=0)
+    res = run(Hold(), m, capital=1000)
     assert res.daily["pnl"].to_list() == pytest.approx([0.0, 0.0])
 
 
@@ -89,9 +89,7 @@ def test_eurusd_in_a_eur_book() -> None:
     # 625 USD owed. EURUSD 1.25 -> 1.30: 500 * (1 - 1.25/1.30) = 19.23 EUR.
     m = Market({"EURUSD": {D1: 1.25, D2: 1.30}}, currency="EUR")
     assert FxPair("EURUSD").value(m, D1) == pytest.approx(-0.8)
-    res = run_weights(
-        wtable({D1: {"EURUSD": 0.5}}), m, instruments=fx(["EURUSD"]), capital=1000, delay=0
-    )
+    res = run_weights(wtable({D1: {"EURUSD": 0.5}}), m, instruments=fx(["EURUSD"]), capital=1000)
     assert qty(res, D1)["EURUSD"] == pytest.approx(625.0)
     assert res.daily["pnl"][1] == pytest.approx(500 * (1 - 1.25 / 1.30))
 
@@ -107,11 +105,7 @@ CROSS = {  # EURJPY = EURUSD * USDJPY: 121, then 132, then 132 again with a weak
 def test_cross_is_held_as_its_two_legs() -> None:
     # Long EURJPY for 1100 USD: 1000 EUR held (EURUSD units) and 121 000 JPY owed (USDJPY units).
     res = run_weights(
-        wtable({D1: {"EURJPY": 1.0}}),
-        Market(CROSS),
-        instruments=fx(["EURJPY"]),
-        capital=1100,
-        delay=0,
+        wtable({D1: {"EURJPY": 1.0}}), Market(CROSS), instruments=fx(["EURJPY"]), capital=1100
     )
     assert qty(res, D1) == pytest.approx({"EURUSD": 1000.0, "USDJPY": 121_000.0})
     assert res.daily["gross"][0] == pytest.approx(2200.0)  # two legs of 1100
@@ -121,11 +115,7 @@ def test_cross_gain_stays_in_the_position_until_rebalanced() -> None:
     # Day 2: EURJPY 121 -> 132, +11 JPY on 1000 EUR = 11 000 JPY = +100 USD at 110.
     # Day 3: EURJPY flat, USDJPY 110 -> 150. Held: the gain is still 11 000 JPY, now 73.33 USD.
     held = run_weights(
-        wtable({D1: {"EURJPY": 1.0}}),
-        Market(CROSS),
-        instruments=fx(["EURJPY"]),
-        capital=1100,
-        delay=0,
+        wtable({D1: {"EURJPY": 1.0}}), Market(CROSS), instruments=fx(["EURJPY"]), capital=1100
     )
     assert held.daily["pnl"].to_list() == pytest.approx([0.0, 100.0, 11_000 / 150 - 100])
     # Rebalanced on day 2: the legs are resized, the 100 USD banked, and day 3 is flat.
@@ -134,7 +124,6 @@ def test_cross_gain_stays_in_the_position_until_rebalanced() -> None:
         Market(CROSS),
         instruments=fx(["EURJPY"]),
         capital=1100,
-        delay=0,
     )
     assert banked.daily["pnl"].to_list() == pytest.approx([0.0, 100.0, 0.0])
 
@@ -147,7 +136,6 @@ def test_cross_carry_is_the_rate_differential_of_its_currencies() -> None:
         Market(flat, extras={"rates": rates}),
         instruments={"EURJPY": FxPair("EURJPY")},
         capital=1100,
-        delay=0,
     )
     # (2 - 4) + (4 - 0.5) = 1.5% a year on 1100 for one day.
     assert res.pnl["cashflow"].sum() == pytest.approx(1100 * 1.5 / 100 / 360)
@@ -160,7 +148,6 @@ def test_cross_and_direct_leg_add_up() -> None:
         Market(CROSS),
         instruments=fx(["EURJPY", "USDJPY"]),
         capital=1100,
-        delay=0,
     )
     assert qty(res, D1) == pytest.approx({"EURUSD": 500.0})
 
@@ -171,7 +158,6 @@ def test_zero_weight_closes_the_legs() -> None:
         Market(CROSS),
         instruments=fx(["EURJPY"]),
         capital=1100,
-        delay=0,
     )
     assert qty(res, D2) == {}
 
@@ -179,7 +165,7 @@ def test_zero_weight_closes_the_legs() -> None:
 def test_cross_without_a_leg_spot_raises() -> None:
     m = Market({"EURUSD": {D1: 1.10}})
     with pytest.raises(KeyError, match="no JPYUSD or USDJPY spot for its JPY leg"):
-        run_weights(wtable({D1: {"EURJPY": 1.0}}), m, instruments=fx(["EURJPY"]), delay=0)
+        run_weights(wtable({D1: {"EURJPY": 1.0}}), m, instruments=fx(["EURJPY"]))
 
 
 def test_a_cross_cannot_be_held_directly() -> None:
@@ -188,4 +174,4 @@ def test_a_cross_cannot_be_held_directly() -> None:
             return {FxPair("EURJPY", rates=None): 1000}
 
     with pytest.raises(TypeError, match="held as its two legs"):
-        run(Direct(), Market(CROSS | {"EURJPY": {D1: 121.0}}), delay=0)
+        run(Direct(), Market(CROSS | {"EURJPY": {D1: 121.0}}))

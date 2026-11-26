@@ -14,8 +14,7 @@ def test_import() -> None:
         "evaluate",
         "load_scores",
         "ras_lower_bounds",
-        "round_trips",
-        "run_blotter",
+        "BorrowCost",
     }
     for name in backtest.__all__:
         assert hasattr(backtest, name)

@@ -12,10 +12,8 @@ candidate tried. Three functions join them:
 - ``save_scores`` / ``load_scores``: keep each candidate's scores as a file, so a family can be
   evaluated across runs and experiments. The caller chooses the directory.
 
-Timing needs no shift: the engine fills a decision taken at the close of t at that close
-(``delay=0``) or the next (``delay=1``, the default) and books the P&L from the fill on, so a row
-of ``scores`` never holds a move known when its decision was taken. ``delay=0`` is exactly the
-lecture's convention (``pnl.py``): decision t meets outcome t+1.
+Timing needs no shift: the engine fills a decision at the close of t and books its P&L at t+1, so
+row t+1 of ``scores`` is decision t meeting outcome t+1, the lecture's convention (``pnl.py``).
 """
 
 from __future__ import annotations

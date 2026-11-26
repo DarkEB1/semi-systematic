@@ -13,9 +13,8 @@ At every close, in this order:
 
 Accounting is cash plus marks: buying lowers cash, selling raises it, and
 ``nav = cash + sum(quantity * mark)``. A day's P&L is the change in NAV, which covers longs, shorts
-and any instrument the same way. A decision taken at today's close fills at the next close by
-default (``delay=1``, ADR-0015): nobody trades at the close that produced the signal. ``delay=0``
-fills at today's close; either way the position never earns the move that produced the decision.
+and any instrument the same way. Execution at today's close for a decision taken at today's close
+is the daily convention: the position earns the move from today to the next close, never today's.
 """
 
 from __future__ import annotations
@@ -159,16 +158,9 @@ class _Run:
         self.cost += cost
         self._attribute(inst, 2, -cost)
 
-    def fill(
-        self, inst: Instrument, qty: float, price: float, day: dt.date, mark: float | None = None
-    ) -> None:
-        """Trade ``qty`` at ``price``. ``mark`` is today's value when the fill was made away from
-        it (a blotter price): the units move to it at once, and the difference is price P&L."""
+    def fill(self, inst: Instrument, qty: float, price: float, day: dt.date) -> None:
         cost = self.costs.cost(inst, qty, price, day)
         self.book.fill(inst, qty, price)
-        if mark is not None:
-            self.book.marks[inst] = mark
-            self._attribute(inst, 0, qty * (mark - price))
         self._charge(inst, cost)
         self.traded += abs(qty * price)
         self.fills.append(
@@ -224,15 +216,14 @@ def run(
     capital: float = 1_000_000.0,
     start: dt.date | None = None,
     end: dt.date | None = None,
-    delay: int = 1,
+    delay: int = 0,
     costs: CostModel | None = None,
 ) -> Result:
     """Backtest ``strategy`` over every day of ``market`` between ``start`` and ``end``.
 
-    ``delay`` is the number of closes between a decision and its fill: 1, the default, fills at
-    the next close; 0 fills at the close the decision was taken, which assumes the signal was
-    known and the order placed before that close. ``costs`` charges every fill and every day a
-    position is held (default: free, ``NoCost``).
+    ``delay`` is the number of closes between a decision and its fill: 0 fills at the close the
+    decision was taken (the daily convention), 1 at the next close (more conservative).
+    ``costs`` charges every fill and every day a position is held (default: free, ``NoCost``).
     """
     if delay < 0:
         raise ValueError("run: delay must be >= 0")

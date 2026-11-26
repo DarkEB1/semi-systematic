@@ -3,13 +3,12 @@
 A daily backtesting engine for any position-based strategy: a strategy says what it wants to hold
 after each close, the engine fills it, pays the costs, values the book every day and reports the
 P&L, split by instrument and cause; then it evaluates the whole family of variants that was tried,
-with a haircut for the search (Daniel and Paleologo). Trades that were made by hand are replayed
-through the same books from a blotter and read as round trips. It is a tool in the sense of [tools/README.md](../README.md):
+with a haircut for the search (Daniel and Paleologo). It is a tool in the sense of [tools/README.md](../README.md):
 it takes market data and a strategy as arguments and never reads the bucket, `.env` or the
 repository. The engine and the bridge are
 [ADR-0014](../../knowledge/decisions/ADR-0014-backtest-engine.md), the evaluation layer
-[ADR-0013](../../knowledge/decisions/ADR-0013-backtest-tool-from-daniel-paleologo.md), and the
-blotter, the ledger, borrow, dividends and the next-close default
+[ADR-0013](../../knowledge/decisions/ADR-0013-backtest-tool-from-daniel-paleologo.md), and short
+borrow and dividends
 [ADR-0015](../../knowledge/decisions/ADR-0015-backtest-blotter-ledger-holding-costs.md).
 
 ## Use
@@ -43,18 +42,6 @@ metrics(res, periods_per_year=260)  # returns, vol, Sharpe, drawdown, turnover, 
 The experiment loads the data (through `quant.data`) and builds the `Market`; the engine sees
 nothing else.
 
-Trades that were actually made, replayed and read one round trip at a time:
-
-```python
-from backtest import BorrowCost, round_trips, run_blotter, trade_stats
-
-# blotter: date | symbol | quantity | price | idea | owner   (price null: that day's close)
-res = run_blotter(blotter, market, costs=BpsCost(15) + BorrowCost({"XYZ": 2500}, default=50))
-
-trips = round_trips(res)  # one row per trade: entry, exit, days, pnl, worst, best, idea, owner
-trade_stats(trips.filter(owner="lucasvilliers"))  # hit rate, average win and loss, payoff
-```
-
 Then evaluate every variant tried, out of sample, in one haircut:
 
 ```python
@@ -85,17 +72,14 @@ Three layers, and the engine between them:
 | `Instrument` | `instruments/` | what one unit is worth (`value`), what it pays (`cashflow`), its `exposure`; `Cash` (stocks, ETFs, indices, any quote currency), `FxPair` (spot FX with carry; crosses held as two legs) |
 | `Strategy`, `Context` | `strategy.py` | the user's code: `on_day(ctx)` returns target quantities, `None` to change nothing |
 | `CostModel` | `costs.py` | the charge on each fill (`BpsCost`, bp of notional per id or bucket; `PerUnitCost`) and on each day held (`BorrowCost`, bp a year on the value of a short), summed with `+` |
-| `run` | `engine.py` | the day loop: pay holding costs, revalue and pay cashflows, fill due orders, ask the strategy, record |
+| `run` | `engine.py` | the day loop: pay holding costs, revalue and pay cashflows, fill due orders, ask the strategy, fill, record |
 | `run_weights` | `weights.py` | wraps a weight table in a `TargetWeights` strategy and calls `run` |
-| `run_blotter` | `blotter.py` | no strategy: fills each row of a trade table on its date, at its price or the close |
 | `Result`, `metrics` | `result.py`, `metrics.py` | the tables (`daily`, `positions`, `trades`, `pnl`) and the summary |
-| `round_trips`, `trade_stats` | `ledger.py` | the same result as flat-to-flat trades per instrument, and their summary |
 
 The books are cash plus marks: buying lowers cash, `nav = cash + sum(quantity * value)`, and a
 day's P&L is the change in NAV, so longs, shorts and every asset class are counted the same way.
-A decision taken at a close fills at the next close (`delay=1`, the default) or, when the
-signal is known and the order placed before the close, at that close (`delay=0`); it earns the
-move from the fill on, never the move that produced it. A missing observation is a missing day,
+A decision taken at a close fills at that close (`delay=0`) or a later one (`delay=1`) and earns
+the move from then on, never the move that produced it. A missing observation is a missing day,
 never a zero return: the mark is kept and the order waits for the next price. Data a strategy
 reads through `ctx.market` stops at today (`LookaheadError` otherwise); `extras` are not guarded.
 
@@ -107,29 +91,17 @@ currency (USD unless the `Market` says otherwise). FX: being long a pair is long
 unit of `USDBRL` is 1 BRL owed, so a long earns `1 - S0/S1` per dollar; carry accrues daily as
 `exposure * (r_base - r_quote) * days / 360` from rates known at the previous close.
 
-## Trades made by hand
+## Borrow and dividends
 
-`run_blotter` replays a table of trades instead of a rule: one row per trade, `quantity` signed in
-units, filled on its date at its `price` (the value of one unit in the market's currency: the
-traded price of a stock or ETF quoted in it) or at the close when `price` is null. A fill away
-from the close is marked to the close the same day and the difference is that day's P&L. A trade
-on a day with no market data, with a zero quantity, or with neither a price nor a close raises.
-There is no `delay`: nothing is decided, the trades already happened.
+`BorrowCost(bps)` charges a yearly fee, in basis points, on the value of every short at the
+previous close, for each calendar day held, on 360 days: `BpsCost(15) + BorrowCost({"XYZ": 2500},
+default=50)`. A short in an id with no rate and no default raises. The fee is in `daily.cost` and
+in the `cost` column of `Result.pnl`.
 
-`round_trips(res)` works on any `Result`, a rule's or a blotter's. A round trip is one instrument
-from flat to flat; its P&L is that instrument's rows of `Result.pnl` over those days, so carry,
-dividends, trading costs and borrow are in it and the trips add up to the run. `worst` and `best`
-are the lowest and highest the trip's running P&L stood at a close. `idea` and `owner` come from
-the blotter row that opened the trip. The book nets an instrument, so two ideas open in the same
-instrument at once are one trip; a fill through zero closes one trip and opens the next, and that
-day's P&L stays with the one it closed.
-
-`trade_stats(trips)` gives the count, hit rate, average win and loss, payoff, expectancy and
-average days of the closed trips; filter `trips` first for one idea or one owner.
-
-Which evaluation for which book: the haircut below is for a rule and its variants, where every
-candidate tried can be listed and each has years of daily returns. A book of discretionary trades
-has neither, so it is read with the ledger, against the thesis written before the trade.
+A `Cash` instrument pays the amounts in `market.extras["dividends"]` (a `Market` of amount per
+unit on the ex-date, in the quote currency) to whoever held the unit at the previous close; a short
+pays them. Give it unadjusted prices, or the dividend is counted twice. `Cash("SPY",
+dividends=None)` switches it off.
 
 ## Evaluating a family of strategies
 
@@ -156,8 +128,7 @@ table, R = evaluate(load_scores(dir_monday, dir_wednesday), kappa=0.12, start=fi
 
 `outputs/` is gitignored, so saved scores stay on the machine that ran them.
 
-With `delay=0` the engine books decision t at t+1, exactly the timing convention below; with
-the default `delay=1` the fill is one close later. Either way `scores` needs no shift.
+The engine books decision t at t+1, so `scores` already follows the timing convention below.
 
 How to read it, on a real example: long BRL carry (short USDBRL when the CDI is above the EFFR),
 alone or with a 50 to 250-day trend filter, plus one variant picking its filter walk-forward;
@@ -236,20 +207,17 @@ lecture reports without a guarantee, data access (`quant.data`) and plotting.
 
 ## Limits
 
-Daily only; fills at a close (or a blotter price) plus a cost model, no order book, market
-impact or limit on size against volume; cash earns no interest (the Sharpe is over cash for
-self-funded positions only); no margin or financing of longs; borrow is a fee the caller gives,
-with no availability, recall or rate history; dividends are cash on the ex-date, with no
-withholding tax, and need unadjusted prices; a blotter `price` is not converted from a foreign
-quote; carry is simple interest on 360 days for every currency (BRL's CDI compounds on 252); a
-cross is shown as its two legs; one book per run (the ledger splits it by owner, the NAV is not
-split).
+Daily only; fills at the close plus a cost model, no order book or market impact; cash earns no
+interest (the Sharpe is over cash for self-funded positions only); no margin or financing of
+longs; borrow is a fee the caller gives, with no availability, recall or rate history; dividends
+are cash on the ex-date, with no withholding tax; carry is simple interest on 360 days for every currency (BRL's CDI
+compounds on 252); a cross is shown as its two legs; one book per run (no per-member books yet).
 
 ## Tests
 
-`uv run pytest tools/backtest/tests -q`: about 150 tests on hand-computed fixtures, no network or
+`uv run pytest tools/backtest/tests -q`: about 130 tests on hand-computed fixtures, no network or
 bucket. Each module has its own file; `test_weights.py` checks that a weight table and the
 equivalent hand-written `Strategy` give identical results; `test_backtest.py` pins the lecture's
 worked numbers; `test_family.py` checks that walk-forward fits cannot see the future and that
-`evaluate` equals `ras_lower_bounds` on the same matrix; `test_blotter.py`, `test_ledger.py` and
-`test_holding.py` cover the replay, the round trips, borrow, dividends and the default delay.
+`evaluate` equals `ras_lower_bounds` on the same matrix; `test_holding.py` covers borrow and
+dividends.

@@ -34,7 +34,6 @@ the ``Result`` of every candidate tried.
 
 from __future__ import annotations
 
-from backtest.blotter import run_blotter
 from backtest.costs import BorrowCost, BpsCost, CostModel, NoCost, PerUnitCost
 from backtest.engine import run
 from backtest.family import evaluate, load_scores, save_scores, scores, walk_forward_weights
@@ -48,7 +47,6 @@ from backtest.haircut import (
     subgaussian_lower_bounds,
 )
 from backtest.instruments import Cash, FxPair, Instrument
-from backtest.ledger import round_trips, trade_stats
 from backtest.market import LookaheadError, Market, MarketView
 from backtest.metrics import metrics
 from backtest.pnl import information_coefficient, net_pnl, risk_scaled
@@ -86,15 +84,12 @@ __all__ = [
     "rademacher",
     "ras_lower_bounds",
     "risk_scaled",
-    "round_trips",
     "run",
-    "run_blotter",
     "run_weights",
     "save_scores",
     "scores",
     "sharpe_se",
     "subgaussian_lower_bounds",
-    "trade_stats",
     "walk_forward",
     "walk_forward_weights",
 ]
