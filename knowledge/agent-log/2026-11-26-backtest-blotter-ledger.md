@@ -84,4 +84,4 @@ Needs a human: lucasvilliers to read the PR, since the default of his engine cha
 
 ## PR
 
-Opened from `feat/backtest-blotter`; the link is in the PR that carries this file.
+[#19](https://github.com/DarkEB1/semi-systematic/pull/19)
